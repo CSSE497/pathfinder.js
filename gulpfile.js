@@ -8,9 +8,9 @@ var gutil = require('gulp-util');
 var sourcemaps = require('gulp-sourcemaps');
 var watch = require('gulp-watch');
 var rename = require('gulp-rename');
+var jsdoc = require('gulp-jsdoc');
 
 gulp.task('clean', function() {
-    // Remove the results of the previous build
     return gulp.src('release', {read: false}).pipe(clean());
 });
 
@@ -26,8 +26,13 @@ gulp.task('build', function() {
         .on('error', gutil.log);
 });
 
-gulp.task('watch', function() {
-    gulp.watch('framework/**.js', ['clean', 'build']);
+gulp.task('docs', function() {
+    return gulp.src('./framework/**.js')
+        .pipe(jsdoc('release/docs'));
 });
 
-gulp.task('default', ['watch', 'clean', 'build']);
+gulp.task('watch', function() {
+    gulp.watch('framework/**.js', ['clean', 'build', 'docs']);
+});
+
+gulp.task('default', ['watch', 'clean', 'build', 'docs']);
