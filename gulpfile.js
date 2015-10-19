@@ -27,7 +27,7 @@ gulp.task('build', function() {
 });
 
 gulp.task('docs', function() {
-    return gulp.src('./framework/**.js')
+    return gulp.src(["./framework/**.js", "README.md"])
         .pipe(jsdoc('release/docs'));
 });
 
