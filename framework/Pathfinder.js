@@ -1,3 +1,10 @@
+/**
+ * Represents a pathfinder application. This object can be used
+ * to query cluster data or request commodity transit
+ * @param {string} applicationIdentifier  Unique application identifier available on the web dashboard
+ * @param {string} userCredentials  Unique key from google id toolkit TODO figure out exactly what this is
+ * @constructor
+ */
 function Pathfinder(applicationIdentifier, userCredentials) {
     var webserviceUrl = 'http://localhost:9000/socket';
 
@@ -13,24 +20,34 @@ function Pathfinder(applicationIdentifier, userCredentials) {
 
     /**
      * Retrieves the top-level cluster for the application
-     * @param callback
+     * @param {function} success Called when cluster is successfully queried. Callback parameter is cluster object
+     * @param {function} error  Called if default cluster query fails. Callback parameter is string error message
      */
-    this.defaultCluster = function(callback) {
+    this.defaultCluster = function(success, error) {
         // Send request to get default cluster
     };
 
-    this.clusterById = function(id, callback) {
+    /**
+     * Retrieves specific cluster from the application
+     * @param {number} id Id of the cluster to retreive
+     * @param {function} success Called when cluster is successfully queried. Callback parameter is cluster object
+     * @param {function} error  Called if default cluster query fails. Callback parameter is string error message
+     */
+    this.clusterById = function(id, success, error) {
         clusterByIdRequestBody.read.id = id;
 
         baseSocket.send(JSON.stringify(clusterByIdRequestBody));
-
-        pendingRequests.push({
-            body: clusterByIdRequestBody,
-            callback: callback
-        });
     };
 
-    this.requestCommodityTransit = function(start, params, callback) {
+    /**
+     * Requests transportation for a physical entity from one geographical location to another. This will immediately route a vehicle to pick up the commodity if one is available that can hold the commodities parameters within the vehicles capacity.
+     * @param {object} cluster The cluster to request commodity transit within
+     * @param {object} start The starting location of the commodity as {"longitude":x, "latitude":y}
+     * @param {object} destination The destination for the commodity as {"longitude":x, "latitude":y}
+     * @param {object} parameters The quantities of your application's routing calculations. The set of parameters needs to be defined and prioritized via the Pathfinder web interface in advance
+     * @param {function} callback This function will be called exactly once with the created commodity object.
+     */
+    this.requestCommodityTransit = function(cluster, start, destination, parameters, callback) {
 
     };
 
