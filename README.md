@@ -4,9 +4,7 @@ The Pathfinder JS Client Library allows developers to easily integrate Pathfinde
   
 Pathfinder provides routing as a service, removing the need for developers to implement their own routing logistics. This SDK allows for iOS applications to act as commodities that need transportation or vehicles that provide transportation. Additionally, there is support for viewing routes for sets of commodities and vehicles.  
   
-## Publicly Hosted Documentation
-  
-  TODO Create gh-pages branch and export documentation there
+## [Publicly Hosted Documentation](http://csse497.github.io/pathfinder.js/)
   
 ## Building the Library and Documentation
 1.  Install Node dependencies with  
