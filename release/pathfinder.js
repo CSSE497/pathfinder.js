@@ -2219,6 +2219,7 @@ function Commodity(id, start, destination, route) {
  */
 function Pathfinder(applicationIdentifier, userCredentials) {
     var webserviceUrl = 'ws://localhost:9000/socket';
+    //var webserviceUrl = 'ws://130.211.184.70:9000/socket';
 
     var baseSocket = new WebSocket(webserviceUrl);
     var pendingRequests = [];
@@ -2271,12 +2272,24 @@ function Pathfinder(applicationIdentifier, userCredentials) {
 
     /**
      * Retrieves specific cluster from the application
-     * @param {number} id Id of the cluster to retreive
+     * @param {number} id Id of the cluster to retrieve
      * @param {function} success Called when cluster is successfully queried. Callback parameter is cluster object
      * @param {function} error  Called if default cluster query fails. Callback parameter is string error message
      */
     this.clusterById = function(id, success, error) {
+        var deferred = Q.defer();
 
+        clusterByIdRequestBody.read.id = id;
+
+        baseSocket.send(JSON.stringify(clusterByIdRequestBody));
+
+        pendingRequests.push({
+            'promise': deferred,
+            'type': 'cluster',
+            'id': id
+        });
+
+        return deferred.promise
     };
 
     /**
@@ -2323,6 +2336,8 @@ function Pathfinder(applicationIdentifier, userCredentials) {
 
                 if (request.id === msg.model.value.id) {
                     request.promise.resolve(msg.model.value);
+
+                    pendingRequests.splice(i, 1);
                 }
             }
         }
