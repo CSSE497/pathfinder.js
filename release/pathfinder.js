@@ -2062,7 +2062,31 @@ return Q;
  * @class
  */
 function PFCluster(id, vehicles, commodities, socket) {
+    var routeSubscriptionMsg = {
+        "routeSubscribe": {
+            "model": "Cluster",
+            "id": id
+        }
+    };
 
+    setTimeout(function(){
+        socket.send(JSON.stringify(routeSubscriptionMsg));
+    }, 1250);
+
+    socket.onmessage = function(msg) {
+        msg = JSON.parse(msg.data);
+
+        if (msg.hasOwnProperty('error')) {
+            console.log(msg);
+            return;
+        }
+
+        if (msg.hasOwnProperty('routed')) {
+            routeUpdateCallback(msg);
+        }
+    };
+
+    var routeUpdateCallback = function() {};
 
     /**
      * @callback Cluster~vehicleDidComeOnlineCallback
@@ -2139,7 +2163,9 @@ function PFCluster(id, vehicles, commodities, socket) {
      * The routing for the cluster was updated. Since every vehicle in a cluster has the potential to transport any vehicle in the same cluster, routes are calculated on a cluster level. When this method is called, all previously provided routes should be considered obsolete.
      * @param {Cluster~clusterWasRouted} callback Called when cluster is routed
      */
-    this.clusterWasRouted = function(callback) {};
+    this.clusterWasRouted = function(callback) {
+        routeUpdateCallback = callback;
+    };
 
     this.getId = function() {
         return id;
@@ -2221,6 +2247,14 @@ function Commodity(id, start, destination, route) {
      * Remove this commodity from consideration when routing.
      */
     this.cancel = function() {};
+
+    this.getStart = function() {
+        return start;
+    };
+
+    this.getDestination = function() {
+        return destination;
+    };
 }
 /**
  * Represents a pathfinder application. This object can be used
@@ -2394,7 +2428,7 @@ function Pathfinder(applicationIdentifier, userCredentials) {
                 if (request.id === msg.model.value.id) {
                     //request.promise.resolve(msg.model.value);
                     var vehicles = [];
-                    for (j = 0; j < msg.model.value.vehicles; j++) {
+                    for (j = 0; j < msg.model.value.vehicles.length; j++) {
                         vehicles.push(new PFVehicle(msg.model.value.vehicles[j].id, {
                             "latitude": msg.model.value.vehicles[j].latitude,
                             "longitude": msg.model.value.vehicles[j].longitude
@@ -2412,7 +2446,7 @@ function Pathfinder(applicationIdentifier, userCredentials) {
                         }));
                     }
 
-                    request.promise.resolve(new PFCluster(msg.model.value.id, vehicles, commodities, new Pathfinder(applicationIdentifier)));
+                    request.promise.resolve(new PFCluster(msg.model.value.id, vehicles, commodities, new WebSocket(webserviceUrl)));
 
                     pendingRequests.splice(i, 1);
                 }
@@ -2422,7 +2456,7 @@ function Pathfinder(applicationIdentifier, userCredentials) {
 }
 
 function PFVehicle(id, position) {
-    this.latLng = function() {
-        return new LatLng(position.latitude, position.longitude);
+    this.getPosition = function() {
+        return position;
     };
 }

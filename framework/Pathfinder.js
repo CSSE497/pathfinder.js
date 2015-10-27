@@ -170,7 +170,7 @@ function Pathfinder(applicationIdentifier, userCredentials) {
                 if (request.id === msg.model.value.id) {
                     //request.promise.resolve(msg.model.value);
                     var vehicles = [];
-                    for (j = 0; j < msg.model.value.vehicles; j++) {
+                    for (j = 0; j < msg.model.value.vehicles.length; j++) {
                         vehicles.push(new PFVehicle(msg.model.value.vehicles[j].id, {
                             "latitude": msg.model.value.vehicles[j].latitude,
                             "longitude": msg.model.value.vehicles[j].longitude
@@ -188,7 +188,7 @@ function Pathfinder(applicationIdentifier, userCredentials) {
                         }));
                     }
 
-                    request.promise.resolve(new PFCluster(msg.model.value.id, vehicles, commodities, new Pathfinder(applicationIdentifier)));
+                    request.promise.resolve(new PFCluster(msg.model.value.id, vehicles, commodities, new WebSocket(webserviceUrl)));
 
                     pendingRequests.splice(i, 1);
                 }

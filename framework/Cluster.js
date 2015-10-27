@@ -13,7 +13,31 @@
  * @class
  */
 function PFCluster(id, vehicles, commodities, socket) {
+    var routeSubscriptionMsg = {
+        "routeSubscribe": {
+            "model": "Cluster",
+            "id": id
+        }
+    };
 
+    setTimeout(function(){
+        socket.send(JSON.stringify(routeSubscriptionMsg));
+    }, 1250);
+
+    socket.onmessage = function(msg) {
+        msg = JSON.parse(msg.data);
+
+        if (msg.hasOwnProperty('error')) {
+            console.log(msg);
+            return;
+        }
+
+        if (msg.hasOwnProperty('routed')) {
+            routeUpdateCallback(msg);
+        }
+    };
+
+    var routeUpdateCallback = function() {};
 
     /**
      * @callback Cluster~vehicleDidComeOnlineCallback
@@ -90,7 +114,9 @@ function PFCluster(id, vehicles, commodities, socket) {
      * The routing for the cluster was updated. Since every vehicle in a cluster has the potential to transport any vehicle in the same cluster, routes are calculated on a cluster level. When this method is called, all previously provided routes should be considered obsolete.
      * @param {Cluster~clusterWasRouted} callback Called when cluster is routed
      */
-    this.clusterWasRouted = function(callback) {};
+    this.clusterWasRouted = function(callback) {
+        routeUpdateCallback = callback;
+    };
 
     this.getId = function() {
         return id;

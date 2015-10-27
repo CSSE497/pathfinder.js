@@ -66,4 +66,12 @@ function Commodity(id, start, destination, route) {
      * Remove this commodity from consideration when routing.
      */
     this.cancel = function() {};
+
+    this.getStart = function() {
+        return start;
+    };
+
+    this.getDestination = function() {
+        return destination;
+    };
 }
