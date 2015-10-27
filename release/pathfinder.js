@@ -2140,6 +2140,18 @@ function PFCluster(id, vehicles, commodities, socket) {
      * @param {Cluster~clusterWasRouted} callback Called when cluster is routed
      */
     this.clusterWasRouted = function(callback) {};
+
+    this.getId = function() {
+        return id;
+    };
+
+    this.getVehicles = function() {
+        return vehicles;
+    };
+
+    this.getCommodities = function() {
+        return commodities;
+    };
 }
 /**
  * Represents a commodity in the Cluster/Vehicle/Commodity (CVC) model.
@@ -2331,7 +2343,7 @@ function Pathfinder(applicationIdentifier, userCredentials) {
     // ---------- Socket Handlers ----------
     baseSocket.onmessage = function(msg) {
         // Find the appropriate pendingRequest and handle appropriately based on success or failure
-        var i, request;
+        var i, j, request;
 
         msg = JSON.parse(msg.data);
 
@@ -2381,12 +2393,36 @@ function Pathfinder(applicationIdentifier, userCredentials) {
 
                 if (request.id === msg.model.value.id) {
                     //request.promise.resolve(msg.model.value);
+                    var vehicles = [];
+                    for (j = 0; j < msg.model.value.vehicles; j++) {
+                        vehicles.push(new PFVehicle(msg.model.value.vehicles[j].id, {
+                            "latitude": msg.model.value.vehicles[j].latitude,
+                            "longitude": msg.model.value.vehicles[j].longitude
+                        }));
+                    }
 
-                    request.promise.resolve(new PFCluster(msg.model.value.id, [], [], {}));
+                    var commodities = [];
+                    for (j = 0; j < msg.model.value.commodities.length; j++) {
+                        commodities.push(new Commodity(msg.model.value.commodities[j].id, {
+                            "latitude": msg.model.value.commodities[j].startLatitude,
+                            "longitude": msg.model.value.commodities[j].startLongitude
+                        }, {
+                            "latitude": msg.model.value.commodities[j].endLatitude,
+                            "longitude": msg.model.value.commodities[j].endLongitude
+                        }));
+                    }
+
+                    request.promise.resolve(new PFCluster(msg.model.value.id, vehicles, commodities, new Pathfinder(applicationIdentifier)));
 
                     pendingRequests.splice(i, 1);
                 }
             }
         }
+    };
+}
+
+function PFVehicle(id, position) {
+    this.latLng = function() {
+        return new LatLng(position.latitude, position.longitude);
     };
 }
