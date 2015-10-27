@@ -138,7 +138,17 @@ function Pathfinder(applicationIdentifier, userCredentials) {
                     msg.created.value.endLatitude === request.value.endLatitude &&
                     msg.created.value.endLongitude === request.value.endLongitude &&
                     msg.created.value.param === request.value.param) {
-                    request.promise.resolve(msg.created.value);
+                    //request.promise.resolve(msg.created.value);
+
+                    msg = msg.created.value;
+
+                    request.promise.resolve(new Commodity(msg.id, {
+                        "latitude": msg.startLatitude,
+                        "longitude": msg.startLongitude
+                    }, {
+                        "latitude": msg.startLatitude,
+                        "longitude": msg.startLongitude
+                    }));
                 }
             }
         } else if (msg.hasOwnProperty('applicationCluster')) {
@@ -158,7 +168,9 @@ function Pathfinder(applicationIdentifier, userCredentials) {
                 request = pendingRequests[i];
 
                 if (request.id === msg.model.value.id) {
-                    request.promise.resolve(msg.model.value);
+                    //request.promise.resolve(msg.model.value);
+
+                    request.promise.resolve(new PFCluster(msg.model.value.id, [], [], {}));
 
                     pendingRequests.splice(i, 1);
                 }

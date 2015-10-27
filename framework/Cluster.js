@@ -12,7 +12,7 @@
  * @param {object} socket
  * @class
  */
-function Cluster(id, vehicles, commodities, socket) {
+function PFCluster(id, vehicles, commodities, socket) {
 
 
     /**
