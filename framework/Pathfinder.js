@@ -6,7 +6,7 @@
  * @constructor
  */
 function Pathfinder(applicationIdentifier, userCredentials) {
-    var webserviceUrl = 'http://localhost:9000/socket';
+    var webserviceUrl = 'ws://localhost:9000/socket';
 
     var baseSocket = new WebSocket(webserviceUrl);
     var pendingRequests = [];
@@ -23,8 +23,38 @@ function Pathfinder(applicationIdentifier, userCredentials) {
      * @param {function} success Called when cluster is successfully queried. Callback parameter is cluster object
      * @param {function} error  Called if default cluster query fails. Callback parameter is string error message
      */
-    this.defaultCluster = function(success, error) {
-        // Send request to get default cluster
+    this.defaultCluster = function() {
+        var deferredId = Q.defer();
+        var deferredCluster = Q.defer();
+
+        baseSocket.send(JSON.stringify({
+            "getApplicationCluster": {
+                "id": applicationIdentifier
+            }
+        }));
+
+        pendingRequests.push({
+            'promise': deferredId,
+            'type': 'cluster',
+            'id': applicationIdentifier
+        });
+
+        deferredId.promise.then(function(res) {
+            clusterByIdRequestBody.read.id = res;
+
+            baseSocket.send(JSON.stringify(clusterByIdRequestBody));
+
+            pendingRequests.push({
+                'promise': deferredCluster,
+                'type': 'cluster',
+                'id': res
+            });
+        }, function(err) {
+            console.error('Failed to query default cluster id for this app');
+            console.log(err);
+        });
+
+        return deferredCluster.promise;
     };
 
     /**
@@ -34,9 +64,7 @@ function Pathfinder(applicationIdentifier, userCredentials) {
      * @param {function} error  Called if default cluster query fails. Callback parameter is string error message
      */
     this.clusterById = function(id, success, error) {
-        clusterByIdRequestBody.read.id = id;
 
-        baseSocket.send(JSON.stringify(clusterByIdRequestBody));
     };
 
     /**
@@ -54,13 +82,37 @@ function Pathfinder(applicationIdentifier, userCredentials) {
     // ---------- Socket Handlers ----------
     baseSocket.onmessage = function(msg) {
         // Find the appropriate pendingRequest and handle appropriately based on success or failure
+        var i, request;
+
+        msg = JSON.parse(msg.data);
 
         if (msg.hasOwnProperty('error')) {
-
+            console.error(msg);
+            return;
         }
 
-        /**
-         * else create cluster/commodity object and call callback(newEntity);
-         */
+        if (msg.hasOwnProperty('created')) {
+            // This response is for a commodity transit request
+        } else if (msg.hasOwnProperty('applicationCluster')) {
+            // Get default cluster id request
+            for (i = 0; i < pendingRequests.length; i++) {
+                request = pendingRequests[i];
+
+                if (request.type === 'cluster' && request.id === msg.applicationCluster.id) {
+                    request.promise.resolve(msg.applicationCluster.clusterId);
+
+                    pendingRequests.splice(i, 1);
+                }
+            }
+        } else {
+            // Response contains cluster object for clusterById call
+            for (i = 0; i < pendingRequests.length; i++) {
+                request = pendingRequests[i];
+
+                if (request.id === msg.model.value.id) {
+                    request.promise.resolve(msg.model.value);
+                }
+            }
+        }
     };
 }
