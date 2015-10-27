@@ -82,14 +82,38 @@ function Pathfinder(applicationIdentifier, userCredentials) {
 
     /**
      * Requests transportation for a physical entity from one geographical location to another. This will immediately route a vehicle to pick up the commodity if one is available that can hold the commodities parameters within the vehicles capacity.
-     * @param {object} cluster The cluster to request commodity transit within
+     * @param {number} cluster The id of the cluster to request commodity transit within
      * @param {object} start The starting location of the commodity as {"longitude":x, "latitude":y}
      * @param {object} destination The destination for the commodity as {"longitude":x, "latitude":y}
      * @param {object} parameters The quantities of your application's routing calculations. The set of parameters needs to be defined and prioritized via the Pathfinder web interface in advance
      * @param {function} callback This function will be called exactly once with the created commodity object.
      */
-    this.requestCommodityTransit = function(cluster, start, destination, parameters, callback) {
+    this.requestCommodityTransit = function(cluster, start, destination, parameters) {
+        var deferred = Q.defer();
 
+        var msg = {
+            "create": {
+                "model": "Commodity",
+                "value": {
+                    "startLatitude": start.latitude,
+                    "startLongitude": start.longitude,
+                    "endLatitude": destination.latitude,
+                    "endLongitude": destination.longitude,
+                    "param": parameters,
+                    "clusterId": cluster
+                }
+            }
+        };
+
+        baseSocket.send(JSON.stringify(msg));
+
+        pendingRequests.push({
+            'promise': deferred,
+            'type': 'commodity',
+            'value': msg.create.value
+        });
+
+        return deferred.promise;
     };
 
     // ---------- Socket Handlers ----------
@@ -106,6 +130,17 @@ function Pathfinder(applicationIdentifier, userCredentials) {
 
         if (msg.hasOwnProperty('created')) {
             // This response is for a commodity transit request
+            for (i = 0; i < pendingRequests.length; i++) {
+                request = pendingRequests[i];
+
+                if (msg.created.value.startLatitude === request.value.startLatitude &&
+                    msg.created.value.startLongitude === request.value.startLongitude &&
+                    msg.created.value.endLatitude === request.value.endLatitude &&
+                    msg.created.value.endLongitude === request.value.endLongitude &&
+                    msg.created.value.param === request.value.param) {
+                    request.promise.resolve(msg.created.value);
+                }
+            }
         } else if (msg.hasOwnProperty('applicationCluster')) {
             // Get default cluster id request
             for (i = 0; i < pendingRequests.length; i++) {
