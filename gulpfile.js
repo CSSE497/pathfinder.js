@@ -10,17 +10,22 @@ var watch = require('gulp-watch');
 var rename = require('gulp-rename');
 var jsdoc = require('gulp-jsdoc');
 
+var jsSrc = [
+    'node_modules/q/q.js',
+    'framework/**.js'
+];
+
 gulp.task('clean', function() {
     return gulp.src('release', {read: false}).pipe(clean());
 });
 
 gulp.task('build', function() {
-    return gulp.src('framework/**.js')
+    return gulp.src(jsSrc)
         .pipe(concat('pathfinder.js'))
         .pipe(gulp.dest('release'))
         .pipe(uglify())
         .pipe(rename('pathfinder.min.js'))
-        .pipe(sourcemaps.write())
+        .pipe(sourcemaps.write('maps'))
         .pipe(gulp.dest('release'))
         .pipe(filesize())
         .on('error', gutil.log);
