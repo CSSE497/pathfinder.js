@@ -6,8 +6,7 @@
  * @constructor
  */
 function Pathfinder(applicationIdentifier, userCredentials) {
-    var webserviceUrl = 'ws://localhost:9000/socket';
-    //var webserviceUrl = 'ws://130.211.184.70:9000/socket';
+    var webserviceUrl = 'ws://api.thepathfinder.xyz:9000/socket';
 
     var baseSocket = new WebSocket(webserviceUrl);
     var pendingRequests = [];
