@@ -126,16 +126,39 @@ Pathfinder.prototype.constructVehicle = function(data) {
     );
 };
 
-Pathfinder.prototype.handleRead = function(data, model) {
-
-    var id = data.id;
-    var request = this.pendingRequests.read[model][id];
+Pathfinder.prototype.handleCreated = function(data, model) {
+    var request = this.pendingRequests.created[model].pop();
 
     if(request === undefined) {
-        console.error("Get " + model + " request failed: " + data);
+        console.error("Create " + model + " request failed: " + data);
     } else {
         var callback = request.callback;
-        delete this.pendingRequests.read[model][id];
+        var returnData;
+        switch(model) {
+            case "Cluster" :
+                returnData = this.constructCluster(data);
+                break;
+            case "Commodity" :
+                returnData = this.constructCommodity(data);
+                break;
+            case "Vehicle" :
+                returnData = this.constructVehicle(data);
+                break;
+        }
+        callback(returnData);
+
+    }
+};
+
+Pathfinder.prototype.handleHelper = function(data, type, model) {
+    var id = data.id;
+    var request = this.pendingRequests.[type][model][id];
+
+    if(request === undefined) {
+        console.error(type + " " + model + " request failed: " + data);
+    } else {
+        var callback = request.callback;
+        delete this.pendingRequests.[type][model][id];
 
         var returnData;
         switch(model) {
@@ -151,6 +174,18 @@ Pathfinder.prototype.handleRead = function(data, model) {
         }
         callback(returnData);
     }
+};
+
+Pathfinder.prototype.handleDeleted = function(data, model) {
+    this.handleHelper(data, "deleted", model);
+}
+
+Pathfinder.prototype.handleRead = function(data, model) {
+    this.handleHelper(data, "read", model);
+};
+
+Pathfinder.prototype.handleUpdated = function(data, model) {
+    this.handleHelper(data, "updated", model);
 };
 
 Pathfinder.prototype.handleReadDefaultClusterId = function(data) {
