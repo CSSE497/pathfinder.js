@@ -6,13 +6,15 @@
  * This class should never directly be instantiated. Instead, it will be created automatically
  * and passed into the callback of functions such as commodityWasRequested()
  *
- * @param {number} id
- * @param {object} start
- * @param {object} destination
- * @param {object} route
+ * @param {Number} id
+ * @param {Number} longitude
+ * @param {Number} latitude
+ * @param {String} status
+ * @param {Number} capacity
+ * @param {Object} webSocket
  * @class
  */
-function Commodity(id, start, destination, route) {
+function PFCommodity(id, longitude, latitude, status, capacity, webSocket) {
     /**
      * @callback Commodity~wasPickedUpAt
      * @param {object} location The location where the commodity was picked up

@@ -6,13 +6,14 @@
  * This object should never be directly instantiated. Instead, use the
  * factory functions in the pathfinder object
  *
- * @param {number} id
- * @param {array} vehicles
- * @param {array} commodities
- * @param {object} socket
+ * @param {Number} clusterId
+ * @param {Number} parentCluster
+ * @param {Array} vehicles
+ * @param {Array} commodities
+ * @param {Object} socket
  * @class
  */
-function PFCluster(id, vehicles, commodities, socket) {
+function PFCluster(clusterId, parentCluster, vehicles, commodities, socket) {
     var routeSubscriptionMsg = {
         "routeSubscribe": {
             "model": "Cluster",

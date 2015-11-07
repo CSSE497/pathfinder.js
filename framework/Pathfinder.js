@@ -1,3 +1,227 @@
+function Pathfinder(url, applicationIdentifier, userCredentials) {
+    this.url = url;
+    this.applicationIdentifier = applicationIdentifier;
+
+    // TODO figure out what to do with this later
+    this.userCredentials = userCredentials;
+    this.webSocket = new WebSocket(this.url);
+
+    this.pendingRequests = {
+        "getApplicationCluster" : {},
+        "getCluster" : {},
+        "getVehicle" : {},
+        "getCommodity" : {},
+    };
+
+    this.subscriptions = {
+        "clusters" : {},
+        "vehicles" : {},
+        "commodities" : {}
+    };
+}
+
+Pathfinder.prototype.close = function() {
+  this.webSocket.close();
+};
+
+Pathfinder.prototype.webSocket.onmessage = function(msg) {
+
+    var data = JSON.parse(msg.data);
+
+    if(data.hasOwnProperty('error')) {
+        console.error(data);
+        return;
+    }
+
+    if(data.hasOwnProperty('applicationCluster')) {
+        this.handleGetDefaultClusterId(data);
+    } else if(data.hasOwnProperty('model')) {
+        var model = data.model.model;
+        var value = data.model.value;
+        switch(model) {
+            case "Cluster" :
+                this.handleGetCluster(value);
+                break;
+            case "Vehicle" :
+                this.handleGetVehicle(value);
+                break;
+            case "Commodity" :
+                this.handleGetCommodity(value);
+                break;
+        }
+    }
+
+    // TODO add more
+}
+
+Pathfinder.prototype.handleGetCluster = function(data) {
+
+    var id = data.id;
+    var request = this.pendingRequests.getCluster[id];
+
+    if(request === undefined) {
+        console.error("Get cluster request failed: " + data);
+    } else {
+        var callback = request.callback;
+        delete this.pendingRequests.getCluster[id];
+
+        var vehicles = data.vehicles.map(
+            function(val) {
+                return new PFVehicle(
+                    val.id,
+                    val.longitude,
+                    val.latitude,
+                    val.status,
+                    val.capacity,
+                    this.webSocket
+                );
+            },
+            this
+        );
+
+        var commodities = data.commodities.map(
+            function(val) {
+                return new PFCommodity(
+                    val.id,
+                    val.longitude,
+                    val.latitude,
+                    val.status,
+                    val.capacity,
+                    this.webSocket
+                );
+            },
+            this
+        );
+
+        var cluster = new PFCluster(
+            data.id,
+            data.parent,
+            vehicles,
+            commodities,
+            this.webSocket
+        );
+        callback(cluster);
+    }
+};
+
+Pathfinder.prototype.handleGetVehicle = function(data) {
+
+    var id = data.id;
+    var request = this.pendingRequests.getVehicle[id];
+
+    if(request === undefined) {
+        console.error("Get vehicle request failed: " + data);
+    } else {
+        var callback = request.callback;
+        delete this.pendingRequests.getVehicle[id];
+
+        var vehicle = new PFVehicle(
+            data.id,
+            data.longitude,
+            data.latitude,
+            data.status,
+            data.capacity,
+            this.webSocket
+        );
+        callback(vehicle);
+    }
+};
+
+Pathfinder.prototype.handleGetCommodity = function(data) {
+
+    var id = data.id;
+    var request = this.pendingRequests.getCommodity[id];
+
+    if(request === undefined) {
+        console.error("Get commodity request failed: " + data);
+    } else {
+        var callback = request.callback;
+        delete this.pendingRequests.getCommodity[id];
+
+        var commodity = new PFCommodity(
+            data.id,
+            data.longitude,
+            data.latitude,
+            data.status,
+            data.capacity,
+            this.webSocket
+        );
+        callback(commodity);
+    }
+};
+
+Pathfinder.prototype.handleGetDefaultClusterId = function(data) {
+
+    var request = this.pendingRequests.getApplicationCluster[data.applicationCluster.id];
+
+    if(request === undefined) {
+        console.error("Get default cluster request failed: " + data);
+    } else {
+        var callback = request.callback;
+        delete this.pendingRequests.getApplicationCluster[data.applicationCluster.id];
+        callback(data.applicationCluster.clusterId);
+    }
+};
+
+Pathfinder.prototype.getDefaultClusterId = function(callback) {
+    this.pendingRequests.getApplicationCluster[this.applicationIdentifier] = {
+        "callback" : callback
+    };
+
+    this.webSocket.send(
+        JSON.stringify({
+            "getApplicationCluster" : {
+                "id" : this.applicationIdentifier
+            }
+        }
+    ));
+};
+
+Pathfinder.prototype.getCluster = function(id, callback) {
+    this.pendingRequests.getCluster[id] = {
+        "callback": callback
+    };
+
+    this.webSocket.send(
+        JSON.stringify({
+            "read" : {
+                "model" : "Cluster",
+                "id" : id
+            }
+        })
+    );
+};
+
+Pathfinder.prototype.getVehicle = function(id, callback) {
+    this.pendingRequests.getVehicle[id] = {
+        "callback": callback
+    };
+
+    this.webSocket.send(
+        JSON.stringify({
+            "read" : {
+                "model" : "Vehicle",
+                "id" : id
+            }
+        })
+    );
+};
+
+Pathfinder.prototype.getCommodity = function(id, callback) {
+    this.pendingRequests.getVehicle[id] = {
+        "callback": callback
+    };
+
+    this.webSocket.send(
+        JSON.stringify({
+            "read" : {
+                "model" : "Commodity",
+                "id" : id
+            }
+        })
+    );
+};
+
 /**
  * Represents a pathfinder application. This object can be used
  * to query cluster data or request commodity transit
