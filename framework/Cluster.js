@@ -8,12 +8,12 @@
  *
  * @param {Number} clusterId
  * @param {Number} parentCluster
- * @param {Array} vehicles
  * @param {Array} commodities
- * @param {Object} socket
+ * @param {Array} vehicles
+ * @param {Object} webSocket
  * @class
  */
-function PFCluster(clusterId, parentCluster, vehicles, commodities, socket) {
+function PFCluster(clusterId, parentCluster, commodities, vehicles, webSocket) {
     var routeSubscriptionMsg = {
         "routeSubscribe": {
             "model": "Cluster",

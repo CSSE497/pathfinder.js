@@ -7,10 +7,37 @@ function Pathfinder(url, applicationIdentifier, userCredentials) {
     this.webSocket = new WebSocket(this.url);
 
     this.pendingRequests = {
-        "getApplicationCluster" : {},
-        "getCluster" : {},
-        "getVehicle" : {},
-        "getCommodity" : {},
+        "created" : {
+            "Cluster" : [],
+            "Commodity" : [],
+            "Vehicle" : []
+        },
+        "deleted" : {
+            "Cluster" : {},
+            "Commodity" : {},
+            "Vehicle" : {}
+        },
+        "read" : {
+            "ApplicationCluster" : {},
+            "Cluster" : {},
+            "Commodity" : {},
+            "Vehicle" : {}
+        },
+        "routed" : {
+            "Cluster" : {},
+            "Commodity" : {},
+            "Vehicle" : {}
+        },
+        "subscribed" : {
+            "Cluster" : {},
+            "Commodity" : {},
+            "Vehicle" : {}
+        },
+        "updated" : {
+//            "Cluster" : {}, Not currently in documentation
+            "Commodity" : {},
+            "Vehicle" : {}
+        }
     };
 
     this.subscriptions = {
@@ -28,198 +55,300 @@ Pathfinder.prototype.webSocket.onmessage = function(msg) {
 
     var data = JSON.parse(msg.data);
 
-    if(data.hasOwnProperty('error')) {
+    if(data.hasOwnProperty("error")) {
         console.error(data);
         return;
     }
 
-    if(data.hasOwnProperty('applicationCluster')) {
-        this.handleGetDefaultClusterId(data);
-    } else if(data.hasOwnProperty('model')) {
-        var model = data.model.model;
-        var value = data.model.value;
+    var model = data.model.model;
+    var value = data.model.value;
+
+    if(data.hasOwnProperty("routed")) {
+        this.handleRouted(value, model);
+    } else if(data.hasOwnProperty("updated")) {
+        this.handleUpdated(value, model);
+    } else if(data.hasOwnProperty("created")) {
+        this.handleCreated(value, model);
+    } else if(data.hasOwnProperty("model")) {
+        this.handleRead(value, model);
+    } else if(data.hasOwnProperty("deleted")) {
+        this.handleDeleted(value, model);
+    } else if(data.hasOwnProperty("Subscribed")) {
+        this.handleSubscribed(value, model);
+    } else if(data.hasOwnProperty("applicationCluster")) {
+        this.handleReadDefaultClusterId(data);
+    }
+
+    // I think that's all of them, for now ...
+
+};
+
+Pathfinder.prototype.constructCluster = function(data) {
+
+    var commodities = data.commodities.map(
+        this.constructCommodity,
+        this
+    );
+
+    var vehicles = data.vehicles.map(
+        this.constructVehicle,
+        this
+    );
+
+    return new PFCluster(
+        data.id,
+        data.parent,
+        commodities,
+        vehicles,
+        this.webSocket
+    );
+};
+
+Pathfinder.prototype.constructCommodity = function(data) {
+    return new PFCommodity(
+        data.id,
+        data.longitude,
+        data.latitude,
+        data.status,
+        data.capacity,
+        this.webSocket
+    );
+};
+
+Pathfinder.prototype.constructVehicle = function(data) {
+    return new PFVehicle(
+        data.id,
+        data.longitude,
+        data.latitude,
+        data.status,
+        data.capacity,
+        this.webSocket
+    );
+};
+
+Pathfinder.prototype.handleRead = function(data, model) {
+
+    var id = data.id;
+    var request = this.pendingRequests.read[model][id];
+
+    if(request === undefined) {
+        console.error("Get " + model + " request failed: " + data);
+    } else {
+        var callback = request.callback;
+        delete this.pendingRequests.read[model][id];
+
+        var returnData;
         switch(model) {
             case "Cluster" :
-                this.handleGetCluster(value);
-                break;
-            case "Vehicle" :
-                this.handleGetVehicle(value);
+                returnData = this.constructCluster(data);
                 break;
             case "Commodity" :
-                this.handleGetCommodity(value);
+                returnData = this.constructCommodity(data);
+                break;
+            case "Vehicle" :
+                returnData = this.constructVehicle(data);
                 break;
         }
-    }
-
-    // TODO add more
-}
-
-Pathfinder.prototype.handleGetCluster = function(data) {
-
-    var id = data.id;
-    var request = this.pendingRequests.getCluster[id];
-
-    if(request === undefined) {
-        console.error("Get cluster request failed: " + data);
-    } else {
-        var callback = request.callback;
-        delete this.pendingRequests.getCluster[id];
-
-        var vehicles = data.vehicles.map(
-            function(val) {
-                return new PFVehicle(
-                    val.id,
-                    val.longitude,
-                    val.latitude,
-                    val.status,
-                    val.capacity,
-                    this.webSocket
-                );
-            },
-            this
-        );
-
-        var commodities = data.commodities.map(
-            function(val) {
-                return new PFCommodity(
-                    val.id,
-                    val.longitude,
-                    val.latitude,
-                    val.status,
-                    val.capacity,
-                    this.webSocket
-                );
-            },
-            this
-        );
-
-        var cluster = new PFCluster(
-            data.id,
-            data.parent,
-            vehicles,
-            commodities,
-            this.webSocket
-        );
-        callback(cluster);
+        callback(returnData);
     }
 };
 
-Pathfinder.prototype.handleGetVehicle = function(data) {
+Pathfinder.prototype.handleReadDefaultClusterId = function(data) {
 
-    var id = data.id;
-    var request = this.pendingRequests.getVehicle[id];
-
-    if(request === undefined) {
-        console.error("Get vehicle request failed: " + data);
-    } else {
-        var callback = request.callback;
-        delete this.pendingRequests.getVehicle[id];
-
-        var vehicle = new PFVehicle(
-            data.id,
-            data.longitude,
-            data.latitude,
-            data.status,
-            data.capacity,
-            this.webSocket
-        );
-        callback(vehicle);
-    }
-};
-
-Pathfinder.prototype.handleGetCommodity = function(data) {
-
-    var id = data.id;
-    var request = this.pendingRequests.getCommodity[id];
-
-    if(request === undefined) {
-        console.error("Get commodity request failed: " + data);
-    } else {
-        var callback = request.callback;
-        delete this.pendingRequests.getCommodity[id];
-
-        var commodity = new PFCommodity(
-            data.id,
-            data.longitude,
-            data.latitude,
-            data.status,
-            data.capacity,
-            this.webSocket
-        );
-        callback(commodity);
-    }
-};
-
-Pathfinder.prototype.handleGetDefaultClusterId = function(data) {
-
-    var request = this.pendingRequests.getApplicationCluster[data.applicationCluster.id];
+    var request = this.pendingRequests.read.ApplicationCluster[data.applicationCluster.id];
 
     if(request === undefined) {
         console.error("Get default cluster request failed: " + data);
     } else {
         var callback = request.callback;
-        delete this.pendingRequests.getApplicationCluster[data.applicationCluster.id];
+        delete this.pendingRequests.read.ApplicationCluster[data.applicationCluster.id];
         callback(data.applicationCluster.clusterId);
     }
 };
 
+Pathfinder.prototype.requestHelper = function(type, model, id, obj, callback) {
+
+    var requestInFlight = false;
+
+    if(id !== null) {
+        requestInFlight = this.pendingRequests[type][model][id] !== undefined;
+        this.pendingRequests[type][model][id] = {
+            "callback" : callback
+        };
+    } else {
+        this.pendingRequests[type][model].push(
+            {
+                "callback" : callback
+            }
+        );
+    }
+
+    if(!requestInFlight) {
+        this.webSocket.send(JSON.stringify(obj));
+    }
+};
+
 Pathfinder.prototype.getDefaultClusterId = function(callback) {
-    this.pendingRequests.getApplicationCluster[this.applicationIdentifier] = {
-        "callback" : callback
+
+    var obj = {
+        "getApplicationCluster": {
+            "id": this.applicationIdentifier
+        }
     };
 
-    this.webSocket.send(
-        JSON.stringify({
-            "getApplicationCluster" : {
-                "id" : this.applicationIdentifier
-            }
+    this.requestHelper("read", "applicationCluster", this.applicationIdentifier, obj, callback);
+};
+
+Pathfinder.prototype.readRequestHelper = function(model, id, callback) {
+
+    var obj = {
+        "read" : {
+            "model" : model,
+            "id" : id
         }
-    ));
+    };
+
+    this.requestHelper("read", model, id, obj, callback);
 };
 
 Pathfinder.prototype.getCluster = function(id, callback) {
-    this.pendingRequests.getCluster[id] = {
-        "callback": callback
-    };
-
-    this.webSocket.send(
-        JSON.stringify({
-            "read" : {
-                "model" : "Cluster",
-                "id" : id
-            }
-        })
-    );
-};
-
-Pathfinder.prototype.getVehicle = function(id, callback) {
-    this.pendingRequests.getVehicle[id] = {
-        "callback": callback
-    };
-
-    this.webSocket.send(
-        JSON.stringify({
-            "read" : {
-                "model" : "Vehicle",
-                "id" : id
-            }
-        })
-    );
+    this.readRequestHelper("Cluster", id, callback);
 };
 
 Pathfinder.prototype.getCommodity = function(id, callback) {
-    this.pendingRequests.getVehicle[id] = {
-        "callback": callback
+    this.readRequestHelper("Commodity", id, callback);
+};
+
+Pathfinder.prototype.getVehicle = function(id, callback) {
+    this.readRequestHelper("Vehicle", id, callback);
+};
+
+Pathfinder.prototype.createRequestHelper = function(model, value, callback) {
+    var obj = {
+        "create" : {
+            "model" : model,
+            "value" : value
+        }
     };
 
-    this.webSocket.send(
-        JSON.stringify({
-            "read" : {
-                "model" : "Commodity",
-                "id" : id
-            }
-        })
-    );
+    this.requestHelper("created", model, null, obj, callback);
+};
+
+Pathfinder.prototype.createCluster = function(callback) {
+    this.createRequestHelper("Cluster", {}, callback);
+};
+
+Pathfinder.prototype.createCommodity = function(startLat, startong, endLat, endLong, param, status, clusterId, callback) {
+    var val = {
+        "startLatitude" : startLat,
+        "startLongitude" : startong,
+        "endLatitude" : endLat,
+        "endLongitude" : endLong,
+        "param" : param,
+        "status" : status,
+        "clusterId" : clusterId
+    };
+
+    this.createRequestHelper("Commodity", val, callback);
+};
+
+Pathfinder.prototype.createVehicle = function(latitude, longitude, capacity, status, clusterId, callback) {
+    var val = {
+        "latitude" : latitude,
+        "longitude" : longitude,
+        "capacity" : capacity,
+        "status" : status,
+        "clusterId" : clusterId
+    };
+
+    this.createRequestHelper("Vehicle", val, callback);
+};
+
+Pathfinder.prototype.updateRequestHelper = function(model, id, value, callback) {
+    var obj = {
+        "update" : {
+            "model" : model,
+            "id" : id,
+            "value" : value
+        }
+    };
+
+    this.requestHelper("updated", model, id, obj, callback);
+};
+
+Pathfinder.prototype.updateCommodity = function(startLat, startLong, endLat, endLong, status, param, id, callback) {
+    var value = {};
+
+    if(startLat !== null) {
+        value.startLatitude = startLat;
+    }
+
+    if(startLong !== null) {
+        value.startLongitude = startLong;
+    }
+
+    if(endLat !== null) {
+        value.endLatitude = endLat;
+    }
+
+    if(endLong !== null) {
+        value.endLongitude = endLong;
+    }
+
+    if(status !== null) {
+        value.status = status;
+    }
+
+    if(param !== null) {
+        value.param = param;
+    }
+
+    this.updateRequestHelper("Commodity", id, value, callback);
+};
+
+Pathfinder.prototype.updateVehicle = function(lat, long, status, capacity, id, callback) {
+    var value = {};
+
+    if(lat !== null) {
+        value.latitude = lat;
+    }
+
+    if(long !== null) {
+        value.longitude = long;
+    }
+
+    if(status !== null) {
+        value.status = status;
+    }
+
+    if(capacity !== null) {
+        value.capacity = capacity;
+    }
+
+    this.createRequestHelper("Vehicle", value, callback);
+};
+
+Pathfinder.prototype.deleteRequestHelper = function(model, id, callback) {
+    var obj = {
+        "delete" : {
+            "model" : model,
+            "id" : id
+        }
+    };
+
+    this.requestHelper("deleted", model, id, obj, callback);
+};
+
+Pathfinder.prototype.deleteCluster = function(id, callback) {
+    this.deleteRequestHelper("Cluster", id, callback);
+};
+
+Pathfinder.prototype.deleteCommodity = function(id, callback) {
+    this.deleteRequestHelper("Commodity", id, callback);
+};
+
+Pathfinder.prototype.deleteVehicle = function(id, callback) {
+    this.deleteRequestHelper("Vehicle", id, callback);
 };
 
 /**
