@@ -11,10 +11,10 @@
  * @param {Number} latitude
  * @param {String} status
  * @param {Number} capacity
- * @param {Object} webSocket
+ * @param {Object} pathfinder
  * @class
  */
-function PFCommodity(id, longitude, latitude, status, capacity, webSocket) {
+function PFCommodity(id, longitude, latitude, status, capacity, pathfinder) {
     /**
      * @callback Commodity~wasPickedUpAt
      * @param {object} location The location where the commodity was picked up
