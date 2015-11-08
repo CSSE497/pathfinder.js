@@ -5,6 +5,7 @@ function Pathfinder(url, applicationIdentifier, userCredentials) {
     // TODO figure out what to do with this later
     this.userCredentials = userCredentials;
     this.webSocket = new WebSocket(this.url);
+    this.webSocket.onmessage = this.onmessage.bind(this);
 
     this.pendingRequests = {
         "created" : {
@@ -61,7 +62,7 @@ Pathfinder.prototype.close = function() {
   this.webSocket.close();
 };
 
-Pathfinder.prototype.webSocket.onmessage = function(msg) {
+Pathfinder.prototype.onmessage = function(msg) {
 
     var data = JSON.parse(msg.data);
 
@@ -86,6 +87,8 @@ Pathfinder.prototype.webSocket.onmessage = function(msg) {
         this.handleSubscribed(data.subscribed);
     } else if(data.hasOwnProperty("applicationCluster")) {
         this.handleReadDefaultClusterId(data.applicationCluster);
+    } else {
+        console.log("Unknown messges", data);
     }
 
     // I think that's all of them, for now ...
@@ -190,6 +193,7 @@ Pathfinder.prototype.handleRouted = function(data) {
     var id = data.value.id;
     var request = this.pendingRequests.routed[data.model][id];
     var subscription = this.subscriptions.Route[data.model][id];
+
     if(request !== undefined) {
         var callback = request.callback;
         delete this.pendingRequests.routed[data.model][id];
@@ -260,6 +264,8 @@ Pathfinder.prototype.requestHelper = function(type, model, id, obj, callback) {
         );
     }
 
+    console.log(JSON.stringify(obj));
+
     if(!requestInFlight) {
         this.webSocket.send(JSON.stringify(obj));
     }
@@ -273,7 +279,7 @@ Pathfinder.prototype.getDefaultClusterId = function(callback) {
         }
     };
 
-    this.requestHelper("read", "applicationCluster", this.applicationIdentifier, obj, callback);
+    this.requestHelper("read", "ApplicationCluster", this.applicationIdentifier, obj, callback);
 };
 
 Pathfinder.prototype.readRequestHelper = function(model, id, callback) {

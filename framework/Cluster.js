@@ -1,4 +1,5 @@
 function PFCluster(id, parentId, commodities, vehicles, pathfinder) {
+    this._this = this;
     this.id = id;
     this.parentId = parentId;
     this.commodities = commodities;
@@ -18,7 +19,7 @@ PFCluster.prototype.unsubscribe = function() {
  this.pathfinder.routeSubscribeHelper("Cluster", this, onSubscribeCallback, updateCallback);
  };
 
- PFCommodity.prototype.routeUnsubscribe = function() {
+ PFCluster.prototype.routeUnsubscribe = function() {
  this.pathfinder.routeUnsubscribeHelper("Cluster", this.id);
  };
 

@@ -1,4 +1,5 @@
 function PFCommodity(id, longitude, latitude, status, capacity, pathfinder) {
+    this._this = this;
     this.id = id;
     this.longitude = longitude;
     this.latitude = latitude;
