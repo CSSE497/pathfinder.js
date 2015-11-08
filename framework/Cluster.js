@@ -1,3 +1,32 @@
+function PFCluster(id, parentId, commodities, vehicles, pathfinder) {
+    this.id = id;
+    this.parentId = parentId;
+    this.commodities = commodities;
+    this.vehicles = vehicles;
+    this.pathfinder = pathfinder;
+}
+
+/*
+
+PFCluster.prototype.subscribe = function(model, onsubscribeCallback, updateCallback) {
+    this.pathfinder.clusterSubscribeHelper(model, this, onsubscribeCallback, updateCallback);
+};
+
+PFCluster.prototype.unsubscribe = function(model) {
+    this.pathfinder.clusterUnsubscribeHelper(model, this.id);
+};
+
+ PFCluster.prototype.routeSubscribe = function(onSubscribeCallback, updateCallback) {
+ this.pathfinder.routeSubscribeHelper("Cluster", this, onSubscribeCallback, updateCallback);
+ };
+
+ PFCommodity.prototype.routeUnsubscribe = function() {
+ this.pathfinder.routeUnsubscribeHelper("Cluster", this.id);
+ };
+
+
+*/
+
 /**
  * Represents a cluster in the Cluster/Vehicle/Commodity (CVC) model.
  *

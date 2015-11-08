@@ -41,10 +41,10 @@ function Pathfinder(url, applicationIdentifier, userCredentials) {
     };
 
     this.subscriptions = {
-        "clusters" : {},
-        "commodities" : {},
-        "transports" : {},
-        "routes" : {
+        "Cluster" : {},
+        "Commodity" : {},
+        "Transport" : {},
+        "" : {
             "Cluster" : {},
             "Commodity" : {},
             "Transport" : {}
@@ -176,8 +176,26 @@ Pathfinder.prototype.handleRead = function(data, model) {
     this.handleHelper(data, "read", model);
 };
 
+Pathfinder.prototype.handleRouted = function(data, model) {
+    var id = data.value.id;
+    var request = this.pendingRequests[type][model][id];
+
+    if(request === undefined) {
+        console.error(type + " " + model + " request failed: " + data);
+    } else {
+        var callback = request.callback;
+        delete this.pendingRequests[type][model][id];
+
+        callback(data.route);
+    }
+};
+
 Pathfinder.prototype.handleUpdated = function(data, model) {
     this.handleHelper(data, "updated", model);
+};
+
+Pathfinder.prototype.handleSubscribed = function(data, model) {
+    this.handleHelper(data, "subscribed", model);
 };
 
 Pathfinder.prototype.handleReadDefaultClusterId = function(data) {
@@ -376,4 +394,65 @@ Pathfinder.prototype.deleteCommodity = function(id, callback) {
 
 Pathfinder.prototype.deleteTransport = function(id, callback) {
     this.deleteRequestHelper("Transport", id, callback);
+};
+
+Pathfinder.prototype.routeRequestHelper = function(model, id, callback) {
+    var obj = {
+        "route" : {
+            "model" : model,
+            "id" : id
+        }
+    };
+    this.requestHelper("routed", model, id, obj, callback);
+};
+
+Pathfinder.prototype.routeCluster = function(id, callback) {
+    this.routeRequestHelper("Cluster", id, callback);
+};
+
+Pathfinder.prototype.routeCommodity = function(id, callback) {
+    this.routeRequestHelper("Commodity", id, callback);
+};
+
+Pathfinder.prototype.routeTransport = function(id, callback) {
+    this.routeRequestHelper("Transport", id, callback);
+};
+
+/*Pathfinder.prototype.clusterSubscribeHelper = function(model, obj, onSubscribeCallback, updateCallback) {
+    if(this.pathfinder.subscriptions.Cluster[this.id] === undefined) {
+        this.pathfinder.subscriptions.Cluster[this.id] = {
+            "model" : obj,
+            "callback" : updateCallback
+        };
+        this.modelSubscribeRequestHelper(model, obj.id, onSubscribeCallback);
+    } else {
+        this.pathfinder.subscriptions[model][this.id].callback = updateCallback;
+    }
+};*/
+
+Pathfinder.prototype.modelSubscribeRequestHelper = function(model, id, callback) {
+    var obj = {
+        "subscribe" : {
+            "model" : model,
+            "id" : id
+        }
+    };
+    this.requestHelper("subscribed", model, id, obj, callback);
+};
+
+Pathfinder.prototype.modelSubscribeHelper = function(model, obj, onSubscribeCallback, updateCallback) {
+    if(this.pathfinder.subscriptions[model][this.id] === undefined) {
+        this.pathfinder.subscriptions[model][this.id] = {
+            "model" : obj,
+            "callback" : updateCallback
+        };
+        this.modelSubscribeRequestHelper(model, obj.id, onSubscribeCallback);
+    } else {
+        this.pathfinder.subscriptions[model][this.id].callback = updateCallback;
+    }
+};
+
+Pathfinder.prototype.modelUnsubscribeHelper = function(model, id) {
+    delete this.pathfinder.subscriptions[model][id];
+    // need to tell the server to stop sending updates when this gets implemented
 };
