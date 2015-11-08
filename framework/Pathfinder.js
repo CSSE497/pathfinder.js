@@ -28,6 +28,11 @@ function Pathfinder(url, applicationIdentifier, userCredentials) {
             "Commodity" : {},
             "Transport" : {}
         },
+        "routeSubscribed" : {
+            "Cluster" : {},
+            "Commodity" : {},
+            "Transport" : {}
+        },
         "subscribed" : {
             "Cluster" : {},
             "Commodity" : {},
@@ -44,7 +49,7 @@ function Pathfinder(url, applicationIdentifier, userCredentials) {
         "Cluster" : {},
         "Commodity" : {},
         "Transport" : {},
-        "" : {
+        "Route" : {
             "Cluster" : {},
             "Commodity" : {},
             "Transport" : {}
@@ -65,23 +70,22 @@ Pathfinder.prototype.webSocket.onmessage = function(msg) {
         return;
     }
 
-    var model = data.model.model;
-    var value = data.model.value;
-
     if(data.hasOwnProperty("routed")) {
-        this.handleRouted(value, model);
+        this.handleRouted(data.routed);
     } else if(data.hasOwnProperty("updated")) {
-        this.handleUpdated(value, model);
+        this.handleUpdated(data.updated);
     } else if(data.hasOwnProperty("created")) {
-        this.handleCreated(value, model);
+        this.handleCreated(data.created);
     } else if(data.hasOwnProperty("model")) {
-        this.handleRead(value, model);
+        this.handleRead(data.model);
     } else if(data.hasOwnProperty("deleted")) {
-        this.handleDeleted(value, model);
-    } else if(data.hasOwnProperty("Subscribed")) {
-        this.handleSubscribed(value, model);
+        this.handleDeleted(data.deleted);
+    } else if(data.hasOwnProperty("routeSubscribed")) {
+        this.handleRouteSubscribed(data.routeSubscribed)
+    } else if(data.hasOwnProperty("subscribed")) {
+        this.handleSubscribed(data.subscribed);
     } else if(data.hasOwnProperty("applicationCluster")) {
-        this.handleReadDefaultClusterId(data);
+        this.handleReadDefaultClusterId(data.applicationCluster);
     }
 
     // I think that's all of them, for now ...
@@ -131,83 +135,111 @@ Pathfinder.prototype.constructTransport = function(data) {
     );
 };
 
-Pathfinder.prototype.constructModel = function(data, model) {
+Pathfinder.prototype.constructModel = function(value, model) {
     switch(model) {
         case "Cluster" :
-            return this.constructCluster(data);
+            return this.constructCluster(value);
         case "Commodity" :
-            return this.constructCommodity(data);
+            return this.constructCommodity(value);
         case "Transport" :
-            return this.constructTransport(data);
+            return this.constructTransport(value);
     }
 };
 
-Pathfinder.prototype.handleCreated = function(data, model) {
-    var request = this.pendingRequests.created[model].pop();
+Pathfinder.prototype.handleCreated = function(data) {
+    var request = this.pendingRequests.created[data.model].pop();
 
     if(request === undefined) {
-        console.error("Create " + model + " request failed: " + data);
+        console.error("Create " + data.model + " request failed: " + data);
     } else {
         var callback = request.callback;
-        callback(this.constructModel(data, model));
+        callback(this.constructModel(data.value, data.model));
 
     }
 };
 
-Pathfinder.prototype.handleHelper = function(data, type, model) {
-    var id = data.id;
+Pathfinder.prototype.handleHelper = function(value, type, model) {
+    var id = value.id;
     var request = this.pendingRequests[type][model][id];
+    var subscription = this.subscriptions[model][value.id];
 
-    if(request === undefined) {
-        console.error(type + " " + model + " request failed: " + data);
-    } else {
+    var obj = this.constructModel(value, model);
+    if(request !== undefined) {
         var callback = request.callback;
         delete this.pendingRequests[type][model][id];
 
-        callback(this.constructModel(data, model));
+        callback(obj);
+    }
+
+    if(subscription !== undefined) {
+        var subCallback = subscription.callback;
+
+        subCallback(subscription.obj, obj);
     }
 };
 
-Pathfinder.prototype.handleDeleted = function(data, model) {
-    this.handleHelper(data, "deleted", model);
+Pathfinder.prototype.handleDeleted = function(data) {
+    this.handleHelper(data.value, "deleted", data.model);
 };
 
-Pathfinder.prototype.handleRead = function(data, model) {
-    this.handleHelper(data, "read", model);
+Pathfinder.prototype.handleRead = function(data) {
+    this.handleHelper(data.value, "read", data.model);
 };
 
-Pathfinder.prototype.handleRouted = function(data, model) {
+Pathfinder.prototype.handleRouted = function(data) {
     var id = data.value.id;
-    var request = this.pendingRequests[type][model][id];
-
-    if(request === undefined) {
-        console.error(type + " " + model + " request failed: " + data);
-    } else {
+    var request = this.pendingRequests.routed[data.model][id];
+    var subscription = this.subscriptions.Route[data.model][id];
+    if(request !== undefined) {
         var callback = request.callback;
-        delete this.pendingRequests[type][model][id];
+        delete this.pendingRequests.routed[data.model][id];
 
         callback(data.route);
     }
+
+    if(subscription !== undefined) {
+        var subCallback = subscription.callback;
+
+        subCallback(subscription.obj, data.route);
+    }
 };
 
-Pathfinder.prototype.handleUpdated = function(data, model) {
-    this.handleHelper(data, "updated", model);
+Pathfinder.prototype.handleUpdated = function(data) {
+    this.handleHelper(data.value, "updated", data.model);
 };
 
-Pathfinder.prototype.handleSubscribed = function(data, model) {
-    this.handleHelper(data, "subscribed", model);
+Pathfinder.prototype.handleSubscribedHelper = function(type, data) {
+    var id = data[type].id;
+    var request = this.pendingRequests[type][data.model][id];
+
+    if(request === undefined) {
+        console.error(type + " " + data.model + " request failed: " + data);
+    } else {
+        var callback = request.callback;
+        delete this.pendingRequests[type][data.model][id];
+
+        callback(data.id);
+    }
+};
+
+Pathfinder.prototype.handleRouteSubscribed = function(data) {
+    this.handleSubscribedHelper("routeSubscribed", data);
+};
+
+Pathfinder.prototype.handleSubscribed = function(data) {
+    this.handleSubscribedHelper("subscribed", data);
 };
 
 Pathfinder.prototype.handleReadDefaultClusterId = function(data) {
 
-    var request = this.pendingRequests.read.ApplicationCluster[data.applicationCluster.id];
+    var request = this.pendingRequests.read.ApplicationCluster[data.id];
 
     if(request === undefined) {
         console.error("Get default cluster request failed: " + data);
     } else {
         var callback = request.callback;
-        delete this.pendingRequests.read.ApplicationCluster[data.applicationCluster.id];
-        callback(data.applicationCluster.clusterId);
+        delete this.pendingRequests.read.ApplicationCluster[data.id];
+        callback(data.clusterId);
     }
 };
 
@@ -418,18 +450,6 @@ Pathfinder.prototype.routeTransport = function(id, callback) {
     this.routeRequestHelper("Transport", id, callback);
 };
 
-/*Pathfinder.prototype.clusterSubscribeHelper = function(model, obj, onSubscribeCallback, updateCallback) {
-    if(this.pathfinder.subscriptions.Cluster[this.id] === undefined) {
-        this.pathfinder.subscriptions.Cluster[this.id] = {
-            "model" : obj,
-            "callback" : updateCallback
-        };
-        this.modelSubscribeRequestHelper(model, obj.id, onSubscribeCallback);
-    } else {
-        this.pathfinder.subscriptions[model][this.id].callback = updateCallback;
-    }
-};*/
-
 Pathfinder.prototype.modelSubscribeRequestHelper = function(model, id, callback) {
     var obj = {
         "subscribe" : {
@@ -443,7 +463,7 @@ Pathfinder.prototype.modelSubscribeRequestHelper = function(model, id, callback)
 Pathfinder.prototype.modelSubscribeHelper = function(model, obj, onSubscribeCallback, updateCallback) {
     if(this.pathfinder.subscriptions[model][this.id] === undefined) {
         this.pathfinder.subscriptions[model][this.id] = {
-            "model" : obj,
+            "obj" : obj,
             "callback" : updateCallback
         };
         this.modelSubscribeRequestHelper(model, obj.id, onSubscribeCallback);
@@ -454,5 +474,32 @@ Pathfinder.prototype.modelSubscribeHelper = function(model, obj, onSubscribeCall
 
 Pathfinder.prototype.modelUnsubscribeHelper = function(model, id) {
     delete this.pathfinder.subscriptions[model][id];
+    // need to tell the server to stop sending updates when this gets implemented
+};
+
+Pathfinder.prototype.routeSubscribeRequestHelper = function(model, id, callback) {
+    var obj = {
+        "routeSubscribe" : {
+            "model" : model,
+            "id" : id
+        }
+    };
+    this.requestHelper("routeSubscribed", model, id, obj, callback);
+};
+
+Pathfinder.prototype.routeSubscribeHelper = function(model, obj, onSubscribeCallback, updateCallback) {
+    if(this.pathfinder.subscriptions.Route[model][this.id] === undefined) {
+        this.pathfinder.subscriptions.Route[model][this.id] = {
+            "obj" : obj,
+            "callback" : updateCallback
+        };
+        this.routeSubscribeRequestHelper(model, obj.id, onSubscribeCallback);
+    } else {
+        this.pathfinder.subscriptions.Route[model][this.id].callback = updateCallback;
+    }
+};
+
+Pathfinder.prototype.routeUnsubscribeHelper = function(model, id) {
+    delete this.pathfinder.subscriptions.Route[model][id];
     // need to tell the server to stop sending updates when this gets implemented
 };
