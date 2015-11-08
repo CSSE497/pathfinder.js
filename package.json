@@ -1,6 +1,6 @@
 {
   "name": "pathfinder.js",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "The Pathfinder JS Client Library allows developers to easily integrate Pathfinder routing service in their web applications.",
   "main": "gulpfile.js",
   "dependencies": {
