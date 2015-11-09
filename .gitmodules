@@ -1,0 +1,3 @@
+[submodule "examples/ChimneySwap"]
+	path = examples/ChimneySwap
+	url = https://github.com/danhanson/ChimneySwap.git
