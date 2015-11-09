@@ -1,197 +1,511 @@
-/**
- * Represents a pathfinder application. This object can be used
- * to query cluster data or request commodity transit
- * @param {string} applicationIdentifier  Unique application identifier available on the web dashboard
- * @param {string} userCredentials  Unique key from google id toolkit TODO figure out exactly what this is
- * @constructor
- */
-function Pathfinder(applicationIdentifier, userCredentials) {
-    var webserviceUrl = 'ws://api.thepathfinder.xyz:9000/socket';
+function Pathfinder(url, applicationIdentifier, userCredentials) {
+    this.url = url;
+    this.applicationIdentifier = applicationIdentifier;
 
-    var baseSocket = new WebSocket(webserviceUrl);
-    var pendingRequests = [];
+    // TODO figure out what to do with this later
+    this.userCredentials = userCredentials;
+    this.webSocket = new WebSocket(this.url);
+    this.webSocket.onmessage = this.onmessage.bind(this);
 
-    var clusterByIdRequestBody = {
-        "read": {
-            "model": "Cluster",
-            "id": -1
+    this.pendingRequests = {
+        "created" : {
+            "Cluster" : [],
+            "Commodity" : [],
+            "Transport" : []
+        },
+        "deleted" : {
+            "Cluster" : {},
+            "Commodity" : {},
+            "Transport" : {}
+        },
+        "read" : {
+            "ApplicationCluster" : {},
+            "Cluster" : {},
+            "Commodity" : {},
+            "Transport" : {}
+        },
+        "routed" : {
+            "Cluster" : {},
+            "Commodity" : {},
+            "Transport" : {}
+        },
+        "routeSubscribed" : {
+            "Cluster" : {},
+            "Commodity" : {},
+            "Transport" : {}
+        },
+        "subscribed" : {
+            "Cluster" : {},
+            "Commodity" : {},
+            "Transport" : {}
+        },
+        "updated" : {
+//            "Cluster" : {}, Not currently in documentation
+            "Commodity" : {},
+            "Transport" : {}
         }
     };
 
-    /**
-     * Retrieves the top-level cluster for the application
-     * @param {function} success Called when cluster is successfully queried. Callback parameter is cluster object
-     * @param {function} error  Called if default cluster query fails. Callback parameter is string error message
-     */
-    this.defaultCluster = function() {
-        var deferredId = Q.defer();
-        var deferredCluster = Q.defer();
-
-        baseSocket.send(JSON.stringify({
-            "getApplicationCluster": {
-                "id": applicationIdentifier
-            }
-        }));
-
-        pendingRequests.push({
-            'promise': deferredId,
-            'type': 'cluster',
-            'id': applicationIdentifier
-        });
-
-        deferredId.promise.then(function(res) {
-            clusterByIdRequestBody.read.id = res;
-
-            baseSocket.send(JSON.stringify(clusterByIdRequestBody));
-
-            pendingRequests.push({
-                'promise': deferredCluster,
-                'type': 'cluster',
-                'id': res
-            });
-        }, function(err) {
-            console.error('Failed to query default cluster id for this app');
-            console.log(err);
-        });
-
-        return deferredCluster.promise;
-    };
-
-    /**
-     * Retrieves specific cluster from the application
-     * @param {number} id Id of the cluster to retrieve
-     * @param {function} success Called when cluster is successfully queried. Callback parameter is cluster object
-     * @param {function} error  Called if default cluster query fails. Callback parameter is string error message
-     */
-    this.clusterById = function(id, success, error) {
-        var deferred = Q.defer();
-
-        clusterByIdRequestBody.read.id = id;
-
-        baseSocket.send(JSON.stringify(clusterByIdRequestBody));
-
-        pendingRequests.push({
-            'promise': deferred,
-            'type': 'cluster',
-            'id': id
-        });
-
-        return deferred.promise;
-    };
-
-    /**
-     * Requests transportation for a physical entity from one geographical location to another. This will immediately route a vehicle to pick up the commodity if one is available that can hold the commodities parameters within the vehicles capacity.
-     * @param {number} cluster The id of the cluster to request commodity transit within
-     * @param {object} start The starting location of the commodity as {"longitude":x, "latitude":y}
-     * @param {object} destination The destination for the commodity as {"longitude":x, "latitude":y}
-     * @param {object} parameters The quantities of your application's routing calculations. The set of parameters needs to be defined and prioritized via the Pathfinder web interface in advance
-     * @param {function} callback This function will be called exactly once with the created commodity object.
-     */
-    this.requestCommodityTransit = function(cluster, start, destination, parameters) {
-        var deferred = Q.defer();
-
-        var msg = {
-            "create": {
-                "model": "Commodity",
-                "value": {
-                    "startLatitude": start.latitude,
-                    "startLongitude": start.longitude,
-                    "endLatitude": destination.latitude,
-                    "endLongitude": destination.longitude,
-                    "param": parameters,
-                    "clusterId": cluster
-                }
-            }
-        };
-
-        baseSocket.send(JSON.stringify(msg));
-
-        pendingRequests.push({
-            'promise': deferred,
-            'type': 'commodity',
-            'value': msg.create.value
-        });
-
-        return deferred.promise;
-    };
-
-    // ---------- Socket Handlers ----------
-    baseSocket.onmessage = function(msg) {
-        // Find the appropriate pendingRequest and handle appropriately based on success or failure
-        var i, j, request;
-
-        msg = JSON.parse(msg.data);
-
-        if (msg.hasOwnProperty('error')) {
-            console.error(msg);
-            return;
-        }
-
-        if (msg.hasOwnProperty('created')) {
-            // This response is for a commodity transit request
-            for (i = 0; i < pendingRequests.length; i++) {
-                request = pendingRequests[i];
-
-                if (msg.created.value.startLatitude === request.value.startLatitude &&
-                    msg.created.value.startLongitude === request.value.startLongitude &&
-                    msg.created.value.endLatitude === request.value.endLatitude &&
-                    msg.created.value.endLongitude === request.value.endLongitude &&
-                    msg.created.value.param === request.value.param) {
-                    //request.promise.resolve(msg.created.value);
-
-                    msg = msg.created.value;
-
-                    request.promise.resolve(new Commodity(msg.id, {
-                        "latitude": msg.startLatitude,
-                        "longitude": msg.startLongitude
-                    }, {
-                        "latitude": msg.startLatitude,
-                        "longitude": msg.startLongitude
-                    }));
-                }
-            }
-        } else if (msg.hasOwnProperty('applicationCluster')) {
-            // Get default cluster id request
-            for (i = 0; i < pendingRequests.length; i++) {
-                request = pendingRequests[i];
-
-                if (request.type === 'cluster' && request.id === msg.applicationCluster.id) {
-                    request.promise.resolve(msg.applicationCluster.clusterId);
-
-                    pendingRequests.splice(i, 1);
-                }
-            }
-        } else {
-            // Response contains cluster object for clusterById call
-            for (i = 0; i < pendingRequests.length; i++) {
-                request = pendingRequests[i];
-
-                if (request.id === msg.model.value.id) {
-                    //request.promise.resolve(msg.model.value);
-                    var vehicles = [];
-                    for (j = 0; j < msg.model.value.vehicles.length; j++) {
-                        vehicles.push(new PFVehicle(msg.model.value.vehicles[j].id, {
-                            "latitude": msg.model.value.vehicles[j].latitude,
-                            "longitude": msg.model.value.vehicles[j].longitude
-                        }));
-                    }
-
-                    var commodities = [];
-                    for (j = 0; j < msg.model.value.commodities.length; j++) {
-                        commodities.push(new Commodity(msg.model.value.commodities[j].id, {
-                            "latitude": msg.model.value.commodities[j].startLatitude,
-                            "longitude": msg.model.value.commodities[j].startLongitude
-                        }, {
-                            "latitude": msg.model.value.commodities[j].endLatitude,
-                            "longitude": msg.model.value.commodities[j].endLongitude
-                        }));
-                    }
-
-                    request.promise.resolve(new PFCluster(msg.model.value.id, vehicles, commodities, new WebSocket(webserviceUrl)));
-
-                    pendingRequests.splice(i, 1);
-                }
-            }
+    this.subscriptions = {
+        "Cluster" : {},
+        "Commodity" : {},
+        "Transport" : {},
+        "Route" : {
+            "Cluster" : {},
+            "Commodity" : {},
+            "Transport" : {}
         }
     };
 }
+
+Pathfinder.prototype.close = function() {
+  this.webSocket.close();
+};
+
+Pathfinder.prototype.onmessage = function(msg) {
+
+    var data = JSON.parse(msg.data);
+
+    if(data.hasOwnProperty("error")) {
+        console.error(data);
+        return;
+    }
+
+    if(data.hasOwnProperty("routed")) {
+        this.handleRouted(data.routed);
+    } else if(data.hasOwnProperty("updated")) {
+        this.handleUpdated(data.updated);
+    } else if(data.hasOwnProperty("created")) {
+        this.handleCreated(data.created);
+    } else if(data.hasOwnProperty("model")) {
+        this.handleRead(data.model);
+    } else if(data.hasOwnProperty("deleted")) {
+        this.handleDeleted(data.deleted);
+    } else if(data.hasOwnProperty("routeSubscribed")) {
+        this.handleRouteSubscribed(data.routeSubscribed)
+    } else if(data.hasOwnProperty("subscribed")) {
+        this.handleSubscribed(data.subscribed);
+    } else if(data.hasOwnProperty("applicationCluster")) {
+        this.handleReadDefaultClusterId(data.applicationCluster);
+    } else {
+        console.log("Unknown messges", data);
+    }
+
+    // I think that's all of them, for now ...
+
+};
+
+Pathfinder.prototype.constructCluster = function(data) {
+
+    var commodities = data.commodities.map(
+        this.constructCommodity,
+        this
+    );
+
+    var transports = data.transports.map(
+        this.constructTransport,
+        this
+    );
+
+    return new PFCluster(
+        data.id,
+        data.parent,
+        commodities,
+        transports,
+        this
+    );
+};
+
+Pathfinder.prototype.constructCommodity = function(data) {
+    return new PFCommodity(
+        data.id,
+        data.longitude,
+        data.latitude,
+        data.status,
+        data.capacity,
+        this
+    );
+};
+
+Pathfinder.prototype.constructTransport = function(data) {
+    return new PFTransport(
+        data.id,
+        data.longitude,
+        data.latitude,
+        data.status,
+        data.capacity,
+        this
+    );
+};
+
+Pathfinder.prototype.constructModel = function(value, model) {
+    switch(model) {
+        case "Cluster" :
+            return this.constructCluster(value);
+        case "Commodity" :
+            return this.constructCommodity(value);
+        case "Transport" :
+            return this.constructTransport(value);
+    }
+};
+
+Pathfinder.prototype.handleCreated = function(data) {
+    var request = this.pendingRequests.created[data.model].pop();
+
+    if(request === undefined) {
+        console.error("Create " + data.model + " request failed: " + data);
+    } else {
+        var callback = request.callback;
+        callback(this.constructModel(data.value, data.model));
+
+    }
+};
+
+Pathfinder.prototype.handleHelper = function(value, type, model) {
+    var id = value.id;
+    var request = this.pendingRequests[type][model][id];
+    var subscription = this.subscriptions[model][value.id];
+
+    var obj = this.constructModel(value, model);
+    if(request !== undefined) {
+        var callback = request.callback;
+        delete this.pendingRequests[type][model][id];
+
+        callback(obj);
+    }
+
+    if(subscription !== undefined) {
+        var subCallback = subscription.callback;
+
+        subCallback(subscription.obj, obj);
+    }
+};
+
+Pathfinder.prototype.handleDeleted = function(data) {
+    this.handleHelper(data.value, "deleted", data.model);
+};
+
+Pathfinder.prototype.handleRead = function(data) {
+    this.handleHelper(data.value, "read", data.model);
+};
+
+Pathfinder.prototype.handleRouted = function(data) {
+    var id = data.value.id;
+    var request = this.pendingRequests.routed[data.model][id];
+    var subscription = this.subscriptions.Route[data.model][id];
+
+    if(request !== undefined) {
+        var callback = request.callback;
+        delete this.pendingRequests.routed[data.model][id];
+
+        callback(data.route);
+    }
+
+    if(subscription !== undefined) {
+        var subCallback = subscription.callback;
+
+        subCallback(subscription.obj, data.route);
+    }
+};
+
+Pathfinder.prototype.handleUpdated = function(data) {
+    this.handleHelper(data.value, "updated", data.model);
+};
+
+Pathfinder.prototype.handleSubscribedHelper = function(type, data) {
+    var id = data[type].id;
+    var request = this.pendingRequests[type][data.model][id];
+
+    if(request === undefined) {
+        console.error(type + " " + data.model + " request failed: " + data);
+    } else {
+        var callback = request.callback;
+        delete this.pendingRequests[type][data.model][id];
+
+        callback(data.id);
+    }
+};
+
+Pathfinder.prototype.handleRouteSubscribed = function(data) {
+    this.handleSubscribedHelper("routeSubscribed", data);
+};
+
+Pathfinder.prototype.handleSubscribed = function(data) {
+    this.handleSubscribedHelper("subscribed", data);
+};
+
+Pathfinder.prototype.handleReadDefaultClusterId = function(data) {
+
+    var request = this.pendingRequests.read.ApplicationCluster[data.id];
+
+    if(request === undefined) {
+        console.error("Get default cluster request failed: " + data);
+    } else {
+        var callback = request.callback;
+        delete this.pendingRequests.read.ApplicationCluster[data.id];
+        callback(data.clusterId);
+    }
+};
+
+Pathfinder.prototype.requestHelper = function(type, model, id, obj, callback) {
+
+    var requestInFlight = false;
+
+    if(id !== null) {
+        requestInFlight = this.pendingRequests[type][model][id] !== undefined;
+        this.pendingRequests[type][model][id] = {
+            "callback" : callback
+        };
+    } else {
+        this.pendingRequests[type][model].push(
+            {
+                "callback" : callback
+            }
+        );
+    }
+
+    console.log(JSON.stringify(obj));
+
+    if(!requestInFlight) {
+        this.webSocket.send(JSON.stringify(obj));
+    }
+};
+
+Pathfinder.prototype.getDefaultClusterId = function(callback) {
+
+    var obj = {
+        "getApplicationCluster": {
+            "id": this.applicationIdentifier
+        }
+    };
+
+    this.requestHelper("read", "ApplicationCluster", this.applicationIdentifier, obj, callback);
+};
+
+Pathfinder.prototype.readRequestHelper = function(model, id, callback) {
+
+    var obj = {
+        "read" : {
+            "model" : model,
+            "id" : id
+        }
+    };
+
+    this.requestHelper("read", model, id, obj, callback);
+};
+
+Pathfinder.prototype.getCluster = function(id, callback) {
+    this.readRequestHelper("Cluster", id, callback);
+};
+
+Pathfinder.prototype.getCommodity = function(id, callback) {
+    this.readRequestHelper("Commodity", id, callback);
+};
+
+Pathfinder.prototype.getTransport = function(id, callback) {
+    this.readRequestHelper("Transport", id, callback);
+};
+
+Pathfinder.prototype.createRequestHelper = function(model, value, callback) {
+    var obj = {
+        "create" : {
+            "model" : model,
+            "value" : value
+        }
+    };
+
+    this.requestHelper("created", model, null, obj, callback);
+};
+
+Pathfinder.prototype.createCluster = function(callback) {
+    this.createRequestHelper("Cluster", {}, callback);
+};
+
+Pathfinder.prototype.createCommodity = function(startLat, startong, endLat, endLong, param, status, clusterId, callback) {
+    var val = {
+        "startLatitude" : startLat,
+        "startLongitude" : startong,
+        "endLatitude" : endLat,
+        "endLongitude" : endLong,
+        "param" : param,
+        "status" : status,
+        "clusterId" : clusterId
+    };
+
+    this.createRequestHelper("Commodity", val, callback);
+};
+
+Pathfinder.prototype.createTransport = function(latitude, longitude, capacity, status, clusterId, callback) {
+    var val = {
+        "latitude" : latitude,
+        "longitude" : longitude,
+        "capacity" : capacity,
+        "status" : status,
+        "clusterId" : clusterId
+    };
+
+    this.createRequestHelper("Transport", val, callback);
+};
+
+Pathfinder.prototype.updateRequestHelper = function(model, id, value, callback) {
+    var obj = {
+        "update" : {
+            "model" : model,
+            "id" : id,
+            "value" : value
+        }
+    };
+
+    this.requestHelper("updated", model, id, obj, callback);
+};
+
+Pathfinder.prototype.updateCommodity = function(startLat, startLong, endLat, endLong, status, param, id, callback) {
+    var value = {};
+
+    if(startLat !== null) {
+        value.startLatitude = startLat;
+    }
+
+    if(startLong !== null) {
+        value.startLongitude = startLong;
+    }
+
+    if(endLat !== null) {
+        value.endLatitude = endLat;
+    }
+
+    if(endLong !== null) {
+        value.endLongitude = endLong;
+    }
+
+    if(status !== null) {
+        value.status = status;
+    }
+
+    if(param !== null) {
+        value.param = param;
+    }
+
+    this.updateRequestHelper("Commodity", id, value, callback);
+};
+
+Pathfinder.prototype.updateTransport = function(lat, long, status, capacity, id, callback) {
+    var value = {};
+
+    if(lat !== null) {
+        value.latitude = lat;
+    }
+
+    if(long !== null) {
+        value.longitude = long;
+    }
+
+    if(status !== null) {
+        value.status = status;
+    }
+
+    if(capacity !== null) {
+        value.capacity = capacity;
+    }
+
+    this.createRequestHelper("Transport", value, callback);
+};
+
+Pathfinder.prototype.deleteRequestHelper = function(model, id, callback) {
+    var obj = {
+        "delete" : {
+            "model" : model,
+            "id" : id
+        }
+    };
+
+    this.requestHelper("deleted", model, id, obj, callback);
+};
+
+Pathfinder.prototype.deleteCluster = function(id, callback) {
+    this.deleteRequestHelper("Cluster", id, callback);
+};
+
+Pathfinder.prototype.deleteCommodity = function(id, callback) {
+    this.deleteRequestHelper("Commodity", id, callback);
+};
+
+Pathfinder.prototype.deleteTransport = function(id, callback) {
+    this.deleteRequestHelper("Transport", id, callback);
+};
+
+Pathfinder.prototype.routeRequestHelper = function(model, id, callback) {
+    var obj = {
+        "route" : {
+            "model" : model,
+            "id" : id
+        }
+    };
+    this.requestHelper("routed", model, id, obj, callback);
+};
+
+Pathfinder.prototype.routeCluster = function(id, callback) {
+    this.routeRequestHelper("Cluster", id, callback);
+};
+
+Pathfinder.prototype.routeCommodity = function(id, callback) {
+    this.routeRequestHelper("Commodity", id, callback);
+};
+
+Pathfinder.prototype.routeTransport = function(id, callback) {
+    this.routeRequestHelper("Transport", id, callback);
+};
+
+Pathfinder.prototype.modelSubscribeRequestHelper = function(model, id, callback) {
+    var obj = {
+        "subscribe" : {
+            "model" : model,
+            "id" : id
+        }
+    };
+    this.requestHelper("subscribed", model, id, obj, callback);
+};
+
+Pathfinder.prototype.modelSubscribeHelper = function(model, obj, onSubscribeCallback, updateCallback) {
+    if(this.pathfinder.subscriptions[model][this.id] === undefined) {
+        this.pathfinder.subscriptions[model][this.id] = {
+            "obj" : obj,
+            "callback" : updateCallback
+        };
+        this.modelSubscribeRequestHelper(model, obj.id, onSubscribeCallback);
+    } else {
+        this.pathfinder.subscriptions[model][this.id].callback = updateCallback;
+    }
+};
+
+Pathfinder.prototype.modelUnsubscribeHelper = function(model, id) {
+    delete this.pathfinder.subscriptions[model][id];
+    // need to tell the server to stop sending updates when this gets implemented
+};
+
+Pathfinder.prototype.routeSubscribeRequestHelper = function(model, id, callback) {
+    var obj = {
+        "routeSubscribe" : {
+            "model" : model,
+            "id" : id
+        }
+    };
+    this.requestHelper("routeSubscribed", model, id, obj, callback);
+};
+
+Pathfinder.prototype.routeSubscribeHelper = function(model, obj, onSubscribeCallback, updateCallback) {
+    if(this.pathfinder.subscriptions.Route[model][this.id] === undefined) {
+        this.pathfinder.subscriptions.Route[model][this.id] = {
+            "obj" : obj,
+            "callback" : updateCallback
+        };
+        this.routeSubscribeRequestHelper(model, obj.id, onSubscribeCallback);
+    } else {
+        this.pathfinder.subscriptions.Route[model][this.id].callback = updateCallback;
+    }
+};
+
+Pathfinder.prototype.routeUnsubscribeHelper = function(model, id) {
+    delete this.pathfinder.subscriptions.Route[model][id];
+    // need to tell the server to stop sending updates when this gets implemented
+};

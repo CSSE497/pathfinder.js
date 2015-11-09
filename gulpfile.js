@@ -1,6 +1,6 @@
 var gulp = require('gulp');
 
-var clean = require('gulp-clean');
+var del = require('del');
 var concat = require('gulp-concat');
 var uglify = require('gulp-uglify');
 var filesize = require('gulp-filesize');
@@ -16,7 +16,7 @@ var jsSrc = [
 ];
 
 gulp.task('clean', function() {
-    return gulp.src('release', {read: false}).pipe(clean());
+    return del(['release/**']);
 });
 
 gulp.task('build', function() {
