@@ -1,3 +1,12 @@
+/**
+ * Represents a pathfinder application. This object can be used
+ * to query cluster data or request commodity transit.
+ *
+ * @param {string} url - WebSocket url to the Pathfinder service
+ * @param {string} applicationIdentifier - The application identifier for your Pathfinder application
+ * @param {string} userCredentials - Unique key from google id toolkit TODO figure out exactly what this is
+ * @constructor
+ */
 function Pathfinder(url, applicationIdentifier, userCredentials) {
     this.url = url;
     this.applicationIdentifier = applicationIdentifier;
@@ -58,6 +67,10 @@ function Pathfinder(url, applicationIdentifier, userCredentials) {
     };
 }
 
+
+/**
+ * Closes the Pathfinder service's WebSocket
+ */
 Pathfinder.prototype.close = function() {
   this.webSocket.close();
 };
@@ -67,7 +80,7 @@ Pathfinder.prototype.onmessage = function(msg) {
     var data = JSON.parse(msg.data);
 
     if(data.hasOwnProperty("error")) {
-        console.error(data);
+        console.error("Server error occured: " + JSON.stringify(data));
         return;
     }
 
@@ -88,7 +101,7 @@ Pathfinder.prototype.onmessage = function(msg) {
     } else if(data.hasOwnProperty("applicationCluster")) {
         this.handleReadDefaultClusterId(data.applicationCluster);
     } else {
-        console.log("Unknown messges", data);
+        console.error("Unknown message: " + JSON.stringify(data));
     }
 
     // I think that's all of them, for now ...
@@ -119,8 +132,10 @@ Pathfinder.prototype.constructCluster = function(data) {
 Pathfinder.prototype.constructCommodity = function(data) {
     return new PFCommodity(
         data.id,
-        data.longitude,
-        data.latitude,
+        data.startLatitude,
+        data.startLongitude,
+        data.endLatitude,
+        data.endLongitude,
         data.status,
         data.capacity,
         this
@@ -271,6 +286,10 @@ Pathfinder.prototype.requestHelper = function(type, model, id, obj, callback) {
     }
 };
 
+/**
+ * Gets the default cluster id for the specific application.
+ * @param {Pathfinder~getDefaultClusterIdCallback} callback - A callback that handles the response
+ */
 Pathfinder.prototype.getDefaultClusterId = function(callback) {
 
     var obj = {
@@ -281,6 +300,13 @@ Pathfinder.prototype.getDefaultClusterId = function(callback) {
 
     this.requestHelper("read", "ApplicationCluster", this.applicationIdentifier, obj, callback);
 };
+
+/**
+ * This callback is called after the getDefaultClusterId function receives a response.
+ * @callback Pathfinder~getDefaultClusterIdCallback
+ * @param {number} clusterId - The default cluster id
+ */
+
 
 Pathfinder.prototype.readRequestHelper = function(model, id, callback) {
 
@@ -294,17 +320,50 @@ Pathfinder.prototype.readRequestHelper = function(model, id, callback) {
     this.requestHelper("read", model, id, obj, callback);
 };
 
+/**
+ * Gets a cluster with the specified id.
+ * @param id - The id of the cluster to retrieve
+ * @param {Pathfinder~getClusterCallback} callback - The callback that handles the response
+ */
 Pathfinder.prototype.getCluster = function(id, callback) {
     this.readRequestHelper("Cluster", id, callback);
 };
 
+/**
+ * This callback is called after the getCluster function receives a response.
+ * @callback Pathfinder~getClusterCallback
+ * @param {PFCluster} cluster - The cluster received
+ */
+
+/**
+ * Gets a commodity with the specified id.
+ * @param id - The id of the commodity to retrieve
+ * @param {Pathfinder~getCommodityCallback} callback - The callback that handles the response
+ */
 Pathfinder.prototype.getCommodity = function(id, callback) {
     this.readRequestHelper("Commodity", id, callback);
 };
 
+/**
+ * This callback is called after the getCommodity function receives a response.
+ * @callback Pathfinder~getCommodityCallback
+ * @param {PFCommodity} commodity - The commodity received
+ */
+
+/**
+ * Gets a transport with the specified id.
+ * @param id - The id of the transport to retrieve
+ * @param {Pathfinder~getTransportCallback} callback - The callback that handles the response
+ */
 Pathfinder.prototype.getTransport = function(id, callback) {
     this.readRequestHelper("Transport", id, callback);
 };
+
+/**
+ * This callback is called after the getTransport function receives a response.
+ * @callback Pathfinder~getTransportCallback
+ * @param {PFTransport} transport - The transport received
+ */
 
 Pathfinder.prototype.createRequestHelper = function(model, value, callback) {
     var obj = {
@@ -317,14 +376,36 @@ Pathfinder.prototype.createRequestHelper = function(model, value, callback) {
     this.requestHelper("created", model, null, obj, callback);
 };
 
+/**
+ * Creates a cluster.
+ * @param {Pathfinder~createClusterCallback} callback - The callback that handles the response
+ */
 Pathfinder.prototype.createCluster = function(callback) {
+    // TODO figure out if this needs an id or something.
     this.createRequestHelper("Cluster", {}, callback);
 };
 
-Pathfinder.prototype.createCommodity = function(startLat, startong, endLat, endLong, param, status, clusterId, callback) {
+/**
+ * This callback is called after the createCluster function receives a response.
+ * @callback Pathfinder~createClusterCallback
+ * @param {PFCluster} cluster - The newly created cluster
+ */
+
+/**
+ * Creates a commodity
+ * @param {number} startLat - The starting latitude of the commodity
+ * @param {number} startLong - The starting longitude of the commodity
+ * @param {number} endLat - The ending latitude of the commodity
+ * @param {number} endLong - The ending longitude of the commodity
+ * @param {number} param - The capacity taken up by the commodity
+ * @param {string} status - The status of the commodity
+ * @param {number} clusterId - The cluster the commodity will be created under
+ * @param {Pathfinder~createCommodityCallback} callback - The callback that handles the response
+ */
+Pathfinder.prototype.createCommodity = function(startLat, startLong, endLat, endLong, param, status, clusterId, callback) {
     var val = {
         "startLatitude" : startLat,
-        "startLongitude" : startong,
+        "startLongitude" : startLong,
         "endLatitude" : endLat,
         "endLongitude" : endLong,
         "param" : param,
@@ -335,6 +416,21 @@ Pathfinder.prototype.createCommodity = function(startLat, startong, endLat, endL
     this.createRequestHelper("Commodity", val, callback);
 };
 
+/**
+ * This callback is called after the createCommodity function receives a response.
+ * @callback Pathfinder~createCommodityCallback
+ * @param {PFCommodity} commodity - The newly created commodity
+ */
+
+/**
+ * Creates a transport.
+ * @param {number} latitude - The current latitude of the transport
+ * @param {number} longitude - The current longitude of the transport
+ * @param {number} capacity - The capacity of the transport
+ * @param {string} status - The status of the transport
+ * @param {number} clusterId - The cluster the transport will be created under
+ * @param {Pathfinder~createTransportCallback} callback - The callback that handles the response
+ */
 Pathfinder.prototype.createTransport = function(latitude, longitude, capacity, status, clusterId, callback) {
     var val = {
         "latitude" : latitude,
@@ -346,6 +442,12 @@ Pathfinder.prototype.createTransport = function(latitude, longitude, capacity, s
 
     this.createRequestHelper("Transport", val, callback);
 };
+
+/**
+ * This callback is called after the createTransport function receives a response.
+ * @callback Pathfinder~createTransportCallback
+ * @param {PFTransport} transport - The newly created transport
+ */
 
 Pathfinder.prototype.updateRequestHelper = function(model, id, value, callback) {
     var obj = {
@@ -359,6 +461,17 @@ Pathfinder.prototype.updateRequestHelper = function(model, id, value, callback) 
     this.requestHelper("updated", model, id, obj, callback);
 };
 
+/**
+ * Updates a commodity. Use null for any parameter that should not change.
+ * @param {number} startLat - The starting latitude of the commodity
+ * @param {number} startLong - The starting longitude of the commodity
+ * @param {number} endLat - The ending latitude of the commodity
+ * @param {number} endLong - The ending longitude of the commodity
+ * @param {number} param - The capacity taken up by the commodity
+ * @param {string} status - The status of the commodity
+ * @param {number} id - The id of the commodity to be updated
+ * @param {Pathfinder~updateCommodityCallback} callback - The callback that handles the response
+ */
 Pathfinder.prototype.updateCommodity = function(startLat, startLong, endLat, endLong, status, param, id, callback) {
     var value = {};
 
@@ -389,6 +502,21 @@ Pathfinder.prototype.updateCommodity = function(startLat, startLong, endLat, end
     this.updateRequestHelper("Commodity", id, value, callback);
 };
 
+/**
+ * This callback is called after the updateCommodity function receives a response.
+ * @callback Pathfinder~updateCommodityCallback
+ * @param {PFCommodity} commodity - The updated commodity
+ */
+
+/**
+ * Updates a transport. Use null for any parameter that should not be updated.
+ * @param {number} lat - The current latitude of the transport
+ * @param {number} long - The current longitude of the transport
+ * @param {number} capacity - The capacity of the transport
+ * @param {string} status - The status of the transport
+ * @param {number} id - The id of the transport to be updated
+ * @param {Pathfinder~updateTransportCallback} callback - The callback that handles the response
+ */
 Pathfinder.prototype.updateTransport = function(lat, long, status, capacity, id, callback) {
     var value = {};
 
@@ -411,6 +539,13 @@ Pathfinder.prototype.updateTransport = function(lat, long, status, capacity, id,
     this.createRequestHelper("Transport", value, callback);
 };
 
+/**
+ * This callback is called after the updateTransport function receives a response.
+ * @callback Pathfinder~updateTransportCallback
+ * @param {PFTransport} transport - The updated transport
+ */
+
+
 Pathfinder.prototype.deleteRequestHelper = function(model, id, callback) {
     var obj = {
         "delete" : {
@@ -422,17 +557,50 @@ Pathfinder.prototype.deleteRequestHelper = function(model, id, callback) {
     this.requestHelper("deleted", model, id, obj, callback);
 };
 
+/**
+ * Deletes a cluster with the specified id.
+ * @param {number} id - Id of the cluster to be deleted
+ * @param {Pathfinder~deleteClusterCallback} callback - The callback that handles the response
+ */
 Pathfinder.prototype.deleteCluster = function(id, callback) {
     this.deleteRequestHelper("Cluster", id, callback);
 };
 
+/**
+ * This callback is called after the deleteCluster function receives a response.
+ * @callback Pathfinder~deleteClusterCallback
+ * @param {PFCluster} cluster - The deleted cluster
+ */
+
+/**
+ * Deletes a commodity with the specified id.
+ * @param {number} id - Id of the commodity to be deleted
+ * @param {Pathfinder~deleteCommodityCallback} callback - The callback that handles the response
+ */
 Pathfinder.prototype.deleteCommodity = function(id, callback) {
     this.deleteRequestHelper("Commodity", id, callback);
 };
 
+/**
+ * This callback is called after the deleteCommodity function receives a response.
+ * @callback Pathfinder~deleteCommodityCallback
+ * @param {PFCommodity} cluster - The deleted commodity
+ */
+
+/**
+ * Deletes a transport with the specified id.
+ * @param {number} id - Id of the transport to be deleted
+ * @param {Pathfinder~deleteTransportCallback} callback - The callback that handles the response
+ */
 Pathfinder.prototype.deleteTransport = function(id, callback) {
     this.deleteRequestHelper("Transport", id, callback);
 };
+
+/**
+ * This callback is called after the deleteTransport function receives a response.
+ * @callback Pathfinder~deleteTransportCallback
+ * @param {PFTransport} transport - The deleted transport
+ */
 
 Pathfinder.prototype.routeRequestHelper = function(model, id, callback) {
     var obj = {
@@ -444,17 +612,50 @@ Pathfinder.prototype.routeRequestHelper = function(model, id, callback) {
     this.requestHelper("routed", model, id, obj, callback);
 };
 
+/**
+ * Gets the routes for a cluster with the specified id.
+ * @param {number} id - Id of the cluster to get the routes for
+ * @param {Pathfinder~routeClusterCallback} callback - The callback that handles the response
+ */
 Pathfinder.prototype.routeCluster = function(id, callback) {
     this.routeRequestHelper("Cluster", id, callback);
 };
 
+/**
+ * This callback is called after the routeCluster function receives a response.
+ * @callback Pathfinder~routeClusterCallback
+ * @param {object} routes - The routes received
+ */
+
+/**
+ * Gets the route for a commodity with the specified id.
+ * @param {number} id - Id of the commodity to get the route for
+ * @param {Pathfinder~routeCommodityCallback} callback - The callback that handles the response
+ */
 Pathfinder.prototype.routeCommodity = function(id, callback) {
     this.routeRequestHelper("Commodity", id, callback);
 };
 
+/**
+ * This callback is called after the routeCommodity function receives a response.
+ * @callback Pathfinder~routeCommodityCallback
+ * @param {object} route - The route received
+ */
+
+/**
+ * Gets the route for a transport with the specified id.
+ * @param {number} id - Id of the transport to get the route for
+ * @param {Pathfinder~routeTransportCallback} callback - The callback that handles the response
+ */
 Pathfinder.prototype.routeTransport = function(id, callback) {
     this.routeRequestHelper("Transport", id, callback);
 };
+
+/**
+ * This callback is called after the routeTransport function receives a response.
+ * @callback Pathfinder~routeTransportCallback
+ * @param {object} route - The route received
+ */
 
 Pathfinder.prototype.modelSubscribeRequestHelper = function(model, id, callback) {
     var obj = {
