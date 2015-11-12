@@ -27,74 +27,85 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>/**
- * Represents a commodity in the Cluster/Vehicle/Commodity (CVC) model.
- *
- * The functions in this class provide notifications about this commodity
- *
- * This class should never directly be instantiated. Instead, it will be created automatically
- * and passed into the callback of functions such as commodityWasRequested()
- *
- * @param {number} id
- * @param {object} start
- * @param {object} destination
- * @param {object} route
- * @class
+ * Pathfinder commodity constructor. Do not call this constructor it is for the Pathfinder object to use.
+ * @param {number} id - Id of the commodity
+ * @param {number} startLat - The starting latitude of the commodity
+ * @param {number} startLong - The starting longitude of the commodity
+ * @param {number} endLat - The ending latitude of the commodity
+ * @param {number} endLong - The ending longitude of the commodity
+ * @param {string} status - The status of the commodity
+ * @param {number} capacity - The capacity of the commodity
+ * @param {Pathfinder} pathfinder - Pathfinder object that creates this commodity
+ * @constructor
  */
-function Commodity(id, start, destination, route) {
-    /**
-     * @callback Commodity~wasPickedUpAt
-     * @param {object} location The location where the commodity was picked up
-     * @param {object} commodity The commodity that was picked up
-     * @param {object} byVehicle The vehicle that is now transporting the commodity
-     */
+function PFCommodity(id, startLat, startLong, endLat, endLong, status, capacity, pathfinder) {
+    this.id = id;
+    this.startLat = startLat;
+    this.startLong = startLong;
+    this.endLat = endLat;
+    this.endLong = endLong;
+    this.status = status;
+    this.capacity = capacity;
+    this.pathfinder = pathfinder;
+}
 
-    /**
-     * A commodity was picked up at its starting location
-     * @param {Commodity~wasPickedUpAt} callback called when commodity is picked up
-     */
-    this.wasPicketUpAt = function(callback) {};
+/**
+ * Subscribe for updates to the commodity.
+ * @param {PFCommodity~subscribeOnSubscribeCallback} onSubscribeCallback - The callback used when the subscribe request is successful
+ * @param {PFCommodity~subscribeUpdateCallback} updateCallback - The callback used when updates to the commodity are received
+ */
+PFCommodity.prototype.subscribe = function(onSubscribeCallback, updateCallback) {
+    this.pathfinder.modelSubscribeHelper("Commodity", this, onSubscribeCallback, updateCallback).bind(this.pathfinder);
+};
 
-    /**
-     * @callback Commodity~wasDroppedOffAt
-     * @param {object} location The location where the commodity was dropped off
-     * @param {object} commodity The commodity that was dropped off
-     */
+/**
+ * This callback is called after the subscribe function receives a response.
+ * @callback PFCommodity~subscribeOnSubscribeCallback
+ * @param {number} id - Id of the commodity subscribed to
+ */
 
-    /**
-     * A commodity was dropped off at its destination
-     * @param {Commodity~wasDroppedOffAt} callback called when commodity is dropped off
-     */
-    this.wasDroppedOffAt = function(callback) {};
+/**
+ * This callback is called when the subscribe function receives an receives update response.
+ * @callback PFCommodity~subscribeUpdateCallback
+ * @param {PFCommodity} commodity - The commodity subscribed to
+ * @param {PFCommodity} updatedCommodity - The updated commodity received
+ */
 
-    /**
-     * @callback Commodity~wasCancelled
-     * @param {object} commodity The commodity that will no longer be transported
-     */
+/**
+ * Unsubscribes the commodity to updates.
+ */
+PFCommodity.prototype.unsubscribe = function() {
+    this.pathfinder.modelUnsubscribeHelper("Commodity", this.id).bind(this.pathfinder);
+};
 
-    /**
-     * A commodity transportation request was cancelled
-     * @param {Commodity~wasCancelled} callback called when commodity is cancelled
-     */
-    this.wasCancelled = function(callback) {};
+/**
+ * Subscribe for route updates to the commodity.
+ * @param {PFCommodity~routeOnSubscribeCallback} onSubscribeCallback - The callback used when the route subscribe request is successful
+ * @param {PFCommodity~routeUpdateCallback} updateCallback - The callback used when the commodity's route is updated
+ */
+PFCommodity.prototype.routeSubscribe = function(onSubscribeCallback, updateCallback) {
+    this.pathfinder.routeSubscribeHelper("Commodity", this, onSubscribeCallback, updateCallback).bind(this.pathfinder);
+};
 
-    /**
-     * @callback Commodity~wasRouted
-     * @param {object} commodity The commodity that will be transported
-     * @param {object} byVehicle The vehicle that will transport the commodity
-     * @param {object} onRoute The route which contains the other commodities that will be picked up by the vehicle
-     */
+/**
+ * This callback is called after the route subscribe function receives a response.
+ * @callback PFCommodity~routeOnSubscribeCallback
+ * @param {number} id - Id of the commodity's route subscribed to
+ */
 
-    /**
-     * A route was generated for a vehicle that includes this commodity
-     * @param {Commodity~wasRouted} callback called when commodity is routed
-     */
-    this.wasRouted = function(callback) {};
+/**
+ * This callback is called when the route subscribe function receives an receives update response.
+ * @callback PFCommodity~routeUpdateCallback
+ * @param {PFCommodity} commodity - The commodity subscribed to
+ * @param {object} route - The updated route information
+ */
 
-    /**
-     * Remove this commodity from consideration when routing.
-     */
-    this.cancel = function() {};
-}</code></pre>
+/**
+ * Unsubscribes the commodity to route updates.
+ */
+PFCommodity.prototype.routeUnsubscribe = function() {
+    this.pathfinder.routeUnsubscribeHelper("Commodity", this.id).bind(this.pathfinder);
+};</code></pre>
         </article>
     </section>
 
@@ -104,13 +115,13 @@ function Commodity(id, start, destination, route) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cluster.html">Cluster</a></li><li><a href="Commodity.html">Commodity</a></li><li><a href="Pathfinder.html">Pathfinder</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Pathfinder.html">Pathfinder</a></li><li><a href="PFCluster.html">PFCluster</a></li><li><a href="PFCommodity.html">PFCommodity</a></li><li><a href="PFTransport.html">PFTransport</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.3</a> on Tue Oct 20 2015 09:03:42 GMT-0400 (EDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.3</a> on Thu Nov 12 2015 00:35:23 GMT-0500 (EST)
 </footer>
 
 <script> prettyPrint(); </script>

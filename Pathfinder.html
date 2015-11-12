@@ -42,7 +42,7 @@
 
     
 
-    <h4 class="name" id="Pathfinder"><span class="type-signature"></span>new Pathfinder<span class="signature">(applicationIdentifier, userCredentials)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="Pathfinder"><span class="type-signature"></span>new Pathfinder<span class="signature">(url, applicationIdentifier, userCredentials)</span><span class="type-signature"></span></h4>
 
     
 
@@ -50,7 +50,7 @@
 
 <div class="description">
     Represents a pathfinder application. This object can be used
-to query cluster data or request commodity transit
+to query cluster data or request commodity transit.
 </div>
 
 
@@ -86,6 +86,29 @@ to query cluster data or request commodity transit
 
         <tr>
             
+                <td class="name"><code>url</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">WebSocket url to the Pathfinder service</td>
+        </tr>
+
+    
+
+        <tr>
+            
                 <td class="name"><code>applicationIdentifier</code></td>
             
 
@@ -102,7 +125,7 @@ to query cluster data or request commodity transit
 
             
 
-            <td class="description last">Unique application identifier available on the web dashboard</td>
+            <td class="description last">The application identifier for your Pathfinder application</td>
         </tr>
 
     
@@ -166,7 +189,7 @@ to query cluster data or request commodity transit
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line8">line 8</a>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line10">line 10</a>
     </li></ul></dd>
     
 
@@ -215,14 +238,765 @@ to query cluster data or request commodity transit
 
     
 
-    <h4 class="name" id="clusterById"><span class="type-signature"></span>clusterById<span class="signature">(id, success, error)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="close"><span class="type-signature"></span>close<span class="signature">()</span><span class="type-signature"></span></h4>
 
     
 
 
 
 <div class="description">
-    Retrieves specific cluster from the application
+    Closes the Pathfinder service's WebSocket
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line74">line 74</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="createCluster"><span class="type-signature"></span>createCluster<span class="signature">(callback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Creates a cluster.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Pathfinder.html#~createClusterCallback">Pathfinder~createClusterCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The callback that handles the response</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line383">line 383</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="createCommodity"><span class="type-signature"></span>createCommodity<span class="signature">(startLat, startLong, endLat, endLong, param, status, clusterId, callback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Creates a commodity
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>startLat</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The starting latitude of the commodity</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>startLong</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The starting longitude of the commodity</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>endLat</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The ending latitude of the commodity</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>endLong</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The ending longitude of the commodity</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>param</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The capacity taken up by the commodity</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>status</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The status of the commodity</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>clusterId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The cluster the commodity will be created under</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Pathfinder.html#~createCommodityCallback">Pathfinder~createCommodityCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The callback that handles the response</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line405">line 405</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="createTransport"><span class="type-signature"></span>createTransport<span class="signature">(latitude, longitude, capacity, status, clusterId, callback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Creates a transport.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>latitude</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The current latitude of the transport</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>longitude</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The current longitude of the transport</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>capacity</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The capacity of the transport</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>status</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The status of the transport</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>clusterId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The cluster the transport will be created under</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Pathfinder.html#~createTransportCallback">Pathfinder~createTransportCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The callback that handles the response</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line434">line 434</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="deleteCluster"><span class="type-signature"></span>deleteCluster<span class="signature">(id, callback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Deletes a cluster with the specified id.
 </div>
 
 
@@ -274,20 +1048,20 @@ to query cluster data or request commodity transit
 
             
 
-            <td class="description last">Id of the cluster to retreive</td>
+            <td class="description last">Id of the cluster to be deleted</td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>success</code></td>
+                <td class="name"><code>callback</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">function</span>
+<span class="param-type"><a href="Pathfinder.html#~deleteClusterCallback">Pathfinder~deleteClusterCallback</a></span>
 
 
             
@@ -297,30 +1071,7 @@ to query cluster data or request commodity transit
 
             
 
-            <td class="description last">Called when cluster is successfully queried. Callback parameter is cluster object</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>error</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">function</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Called if default cluster query fails. Callback parameter is string error message</td>
+            <td class="description last">The callback that handles the response</td>
         </tr>
 
     
@@ -361,7 +1112,7 @@ to query cluster data or request commodity transit
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line36">line 36</a>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line565">line 565</a>
     </li></ul></dd>
     
 
@@ -392,14 +1143,14 @@ to query cluster data or request commodity transit
 
     
 
-    <h4 class="name" id="defaultCluster"><span class="type-signature"></span>defaultCluster<span class="signature">(success, error)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="deleteCommodity"><span class="type-signature"></span>deleteCommodity<span class="signature">(id, callback)</span><span class="type-signature"></span></h4>
 
     
 
 
 
 <div class="description">
-    Retrieves the top-level cluster for the application
+    Deletes a commodity with the specified id.
 </div>
 
 
@@ -435,13 +1186,13 @@ to query cluster data or request commodity transit
 
         <tr>
             
-                <td class="name"><code>success</code></td>
+                <td class="name"><code>id</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">function</span>
+<span class="param-type">number</span>
 
 
             
@@ -451,20 +1202,20 @@ to query cluster data or request commodity transit
 
             
 
-            <td class="description last">Called when cluster is successfully queried. Callback parameter is cluster object</td>
+            <td class="description last">Id of the commodity to be deleted</td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>error</code></td>
+                <td class="name"><code>callback</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">function</span>
+<span class="param-type"><a href="Pathfinder.html#~deleteCommodityCallback">Pathfinder~deleteCommodityCallback</a></span>
 
 
             
@@ -474,7 +1225,7 @@ to query cluster data or request commodity transit
 
             
 
-            <td class="description last">Called if default cluster query fails. Callback parameter is string error message</td>
+            <td class="description last">The callback that handles the response</td>
         </tr>
 
     
@@ -515,7 +1266,7 @@ to query cluster data or request commodity transit
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line26">line 26</a>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line580">line 580</a>
     </li></ul></dd>
     
 
@@ -546,14 +1297,1752 @@ to query cluster data or request commodity transit
 
     
 
-    <h4 class="name" id="requestCommodityTransit"><span class="type-signature"></span>requestCommodityTransit<span class="signature">(cluster, start, destination, parameters, callback)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="deleteTransport"><span class="type-signature"></span>deleteTransport<span class="signature">(id, callback)</span><span class="type-signature"></span></h4>
 
     
 
 
 
 <div class="description">
-    Requests transportation for a physical entity from one geographical location to another. This will immediately route a vehicle to pick up the commodity if one is available that can hold the commodities parameters within the vehicles capacity.
+    Deletes a transport with the specified id.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Id of the transport to be deleted</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Pathfinder.html#~deleteTransportCallback">Pathfinder~deleteTransportCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The callback that handles the response</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line595">line 595</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="getCluster"><span class="type-signature"></span>getCluster<span class="signature">(id, callback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Gets a cluster with the specified id.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The id of the cluster to retrieve</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Pathfinder.html#~getClusterCallback">Pathfinder~getClusterCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The callback that handles the response</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line328">line 328</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="getCommodity"><span class="type-signature"></span>getCommodity<span class="signature">(id, callback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Gets a commodity with the specified id.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The id of the commodity to retrieve</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Pathfinder.html#~getCommodityCallback">Pathfinder~getCommodityCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The callback that handles the response</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line343">line 343</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="getDefaultClusterId"><span class="type-signature"></span>getDefaultClusterId<span class="signature">(callback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Gets the default cluster id for the specific application.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Pathfinder.html#~getDefaultClusterIdCallback">Pathfinder~getDefaultClusterIdCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">A callback that handles the response</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line293">line 293</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="getTransport"><span class="type-signature"></span>getTransport<span class="signature">(id, callback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Gets a transport with the specified id.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The id of the transport to retrieve</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Pathfinder.html#~getTransportCallback">Pathfinder~getTransportCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The callback that handles the response</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line358">line 358</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="routeCluster"><span class="type-signature"></span>routeCluster<span class="signature">(id, callback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Gets the routes for a cluster with the specified id.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Id of the cluster to get the routes for</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Pathfinder.html#~routeClusterCallback">Pathfinder~routeClusterCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The callback that handles the response</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line620">line 620</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="routeCommodity"><span class="type-signature"></span>routeCommodity<span class="signature">(id, callback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Gets the route for a commodity with the specified id.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Id of the commodity to get the route for</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Pathfinder.html#~routeCommodityCallback">Pathfinder~routeCommodityCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The callback that handles the response</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line635">line 635</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="routeTransport"><span class="type-signature"></span>routeTransport<span class="signature">(id, callback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Gets the route for a transport with the specified id.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Id of the transport to get the route for</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Pathfinder.html#~routeTransportCallback">Pathfinder~routeTransportCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The callback that handles the response</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line650">line 650</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="updateCommodity"><span class="type-signature"></span>updateCommodity<span class="signature">(startLat, startLong, endLat, endLong, param, status, id, callback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Updates a commodity. Use null for any parameter that should not change.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>startLat</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The starting latitude of the commodity</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>startLong</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The starting longitude of the commodity</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>endLat</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The ending latitude of the commodity</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>endLong</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The ending longitude of the commodity</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>param</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The capacity taken up by the commodity</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>status</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The status of the commodity</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The id of the commodity to be updated</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Pathfinder.html#~updateCommodityCallback">Pathfinder~updateCommodityCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The callback that handles the response</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line475">line 475</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="updateTransport"><span class="type-signature"></span>updateTransport<span class="signature">(lat, long, capacity, status, id, callback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Updates a transport. Use null for any parameter that should not be updated.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>lat</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The current latitude of the transport</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>long</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The current longitude of the transport</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>capacity</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The capacity of the transport</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>status</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The status of the transport</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The id of the transport to be updated</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Pathfinder.html#~updateTransportCallback">Pathfinder~updateTransportCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The callback that handles the response</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line520">line 520</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Type Definitions</h3>
+
+        
+                
+
+    
+
+    <h4 class="name" id="~createClusterCallback"><span class="type-signature"></span>createClusterCallback<span class="signature">(cluster)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    This callback is called after the createCluster function receives a response.
 </div>
 
 
@@ -595,7 +3084,7 @@ to query cluster data or request commodity transit
             <td class="type">
             
                 
-<span class="param-type">object</span>
+<span class="param-type"><a href="PFCluster.html">PFCluster</a></span>
 
 
             
@@ -605,99 +3094,7 @@ to query cluster data or request commodity transit
 
             
 
-            <td class="description last">The cluster to request commodity transit within</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>start</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The starting location of the commodity as {"longitude":x, "latitude":y}</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>destination</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The destination for the commodity as {"longitude":x, "latitude":y}</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>parameters</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The quantities of your application's routing calculations. The set of parameters needs to be defined and prioritized via the Pathfinder web interface in advance</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>callback</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">function</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">This function will be called exactly once with the created commodity object.</td>
+            <td class="description last">The newly created cluster</td>
         </tr>
 
     
@@ -738,7 +3135,7 @@ to query cluster data or request commodity transit
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line50">line 50</a>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line388">line 388</a>
     </li></ul></dd>
     
 
@@ -764,9 +3161,1841 @@ to query cluster data or request commodity transit
 
 
 
-        
+            
+                
+
     
 
+    <h4 class="name" id="~createCommodityCallback"><span class="type-signature"></span>createCommodityCallback<span class="signature">(commodity)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    This callback is called after the createCommodity function receives a response.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>commodity</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="PFCommodity.html">PFCommodity</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The newly created commodity</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line419">line 419</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="~createTransportCallback"><span class="type-signature"></span>createTransportCallback<span class="signature">(transport)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    This callback is called after the createTransport function receives a response.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>transport</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="PFTransport.html">PFTransport</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The newly created transport</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line446">line 446</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="~deleteClusterCallback"><span class="type-signature"></span>deleteClusterCallback<span class="signature">(cluster)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    This callback is called after the deleteCluster function receives a response.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>cluster</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="PFCluster.html">PFCluster</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The deleted cluster</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line569">line 569</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="~deleteCommodityCallback"><span class="type-signature"></span>deleteCommodityCallback<span class="signature">(cluster)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    This callback is called after the deleteCommodity function receives a response.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>cluster</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="PFCommodity.html">PFCommodity</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The deleted commodity</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line584">line 584</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="~deleteTransportCallback"><span class="type-signature"></span>deleteTransportCallback<span class="signature">(transport)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    This callback is called after the deleteTransport function receives a response.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>transport</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="PFTransport.html">PFTransport</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The deleted transport</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line599">line 599</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="~getClusterCallback"><span class="type-signature"></span>getClusterCallback<span class="signature">(cluster)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    This callback is called after the getCluster function receives a response.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>cluster</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="PFCluster.html">PFCluster</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The cluster received</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line332">line 332</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="~getCommodityCallback"><span class="type-signature"></span>getCommodityCallback<span class="signature">(commodity)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    This callback is called after the getCommodity function receives a response.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>commodity</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="PFCommodity.html">PFCommodity</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The commodity received</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line347">line 347</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="~getDefaultClusterIdCallback"><span class="type-signature"></span>getDefaultClusterIdCallback<span class="signature">(clusterId)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    This callback is called after the getDefaultClusterId function receives a response.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>clusterId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The default cluster id</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line304">line 304</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="~getTransportCallback"><span class="type-signature"></span>getTransportCallback<span class="signature">(transport)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    This callback is called after the getTransport function receives a response.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>transport</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="PFTransport.html">PFTransport</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The transport received</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line362">line 362</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="~routeClusterCallback"><span class="type-signature"></span>routeClusterCallback<span class="signature">(routes)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    This callback is called after the routeCluster function receives a response.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>routes</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The routes received</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line624">line 624</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="~routeCommodityCallback"><span class="type-signature"></span>routeCommodityCallback<span class="signature">(route)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    This callback is called after the routeCommodity function receives a response.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>route</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The route received</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line639">line 639</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="~routeTransportCallback"><span class="type-signature"></span>routeTransportCallback<span class="signature">(route)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    This callback is called after the routeTransport function receives a response.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>route</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The route received</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line654">line 654</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="~updateCommodityCallback"><span class="type-signature"></span>updateCommodityCallback<span class="signature">(commodity)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    This callback is called after the updateCommodity function receives a response.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>commodity</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="PFCommodity.html">PFCommodity</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The updated commodity</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line505">line 505</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="~updateTransportCallback"><span class="type-signature"></span>updateTransportCallback<span class="signature">(transport)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    This callback is called after the updateTransport function receives a response.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>transport</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="PFTransport.html">PFTransport</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The updated transport</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Pathfinder.js.html">Pathfinder.js</a>, <a href="Pathfinder.js.html#line542">line 542</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
     
 
     
@@ -780,13 +5009,13 @@ to query cluster data or request commodity transit
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cluster.html">Cluster</a></li><li><a href="Commodity.html">Commodity</a></li><li><a href="Pathfinder.html">Pathfinder</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Pathfinder.html">Pathfinder</a></li><li><a href="PFCluster.html">PFCluster</a></li><li><a href="PFCommodity.html">PFCommodity</a></li><li><a href="PFTransport.html">PFTransport</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.3</a> on Tue Oct 20 2015 09:03:42 GMT-0400 (EDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.3</a> on Thu Nov 12 2015 00:35:23 GMT-0500 (EST)
 </footer>
 
 <script> prettyPrint(); </script>
