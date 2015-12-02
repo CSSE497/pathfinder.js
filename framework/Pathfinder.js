@@ -16,6 +16,25 @@ function Pathfinder(url, applicationIdentifier, userCredentials) {
     this.webSocket = new WebSocket(this.url);
     this.webSocket.onmessage = this.onmessage.bind(this);
 
+    // stores requests made before the socket is opened
+    this.messageBacklog = [];
+
+    var pathfinder = this;
+
+    // sends messages in messageBacklog once socket opens
+    this.websocket.onopen = function(){
+        if(pathfinder.messageBacklog === undefined){
+            // either onopen was called twice or something messed with messageBacklog
+            throw new Error(
+                "Pathfinder.messageBacklog is undefined, was Pathfinder.webSocket.onopen called twice?"
+            );
+        }
+        for(var i = 0; i < pathfinder.messageBacklog.length; ++i){
+            pathfinder.webSocket.send(pathfinder.messageBacklog[i]);
+        }
+        delete pathfinder.messageBacklog;
+    };
+
     this.pendingRequests = {
         "created" : {
             "Cluster" : [],
@@ -228,7 +247,7 @@ Pathfinder.prototype.handleUpdated = function(data) {
 };
 
 Pathfinder.prototype.handleSubscribedHelper = function(type, data) {
-    var id = data[type].id;
+    var id = data.id;
     var request = this.pendingRequests[type][data.model][id];
 
     if(request === undefined) {
@@ -279,10 +298,21 @@ Pathfinder.prototype.requestHelper = function(type, model, id, obj, callback) {
         );
     }
 
-    console.log(JSON.stringify(obj));
-
+    var message = JSON.stringify(obj);
+    console.log(message);
     if(!requestInFlight) {
-        this.webSocket.send(JSON.stringify(obj));
+        switch(this.websocket.readyState){
+            case 0: // connecting, save message and send it once the socket opens
+                this.messageBacklog.push(message);
+                break;
+            case 1: // opened, send message
+                this.webSocket.send(message);
+                break;
+            case 2: // closing
+                throw new Error("Failed to send message: \""+message+"\" because socket is closing");
+            case 3: // closed
+                throw new Error("Failed to send message: \""+message+"\" because socket is closed");
+        }
     }
 };
 
@@ -668,14 +698,14 @@ Pathfinder.prototype.modelSubscribeRequestHelper = function(model, id, callback)
 };
 
 Pathfinder.prototype.modelSubscribeHelper = function(model, obj, onSubscribeCallback, updateCallback) {
-    if(this.pathfinder.subscriptions[model][this.id] === undefined) {
-        this.pathfinder.subscriptions[model][this.id] = {
+    if(this.subscriptions[model][obj.id] === undefined) {
+        this.subscriptions[model][obj.id] = {
             "obj" : obj,
             "callback" : updateCallback
         };
         this.modelSubscribeRequestHelper(model, obj.id, onSubscribeCallback);
     } else {
-        this.pathfinder.subscriptions[model][this.id].callback = updateCallback;
+        this.subscriptions[model][obj.id].callback = updateCallback;
     }
 };
 
@@ -695,14 +725,14 @@ Pathfinder.prototype.routeSubscribeRequestHelper = function(model, id, callback)
 };
 
 Pathfinder.prototype.routeSubscribeHelper = function(model, obj, onSubscribeCallback, updateCallback) {
-    if(this.pathfinder.subscriptions.Route[model][this.id] === undefined) {
-        this.pathfinder.subscriptions.Route[model][this.id] = {
+    if(this.subscriptions.Route[model][obj.id] === undefined) {
+        this.subscriptions.Route[model][obj.id] = {
             "obj" : obj,
             "callback" : updateCallback
         };
         this.routeSubscribeRequestHelper(model, obj.id, onSubscribeCallback);
     } else {
-        this.pathfinder.subscriptions.Route[model][this.id].callback = updateCallback;
+        this.pathfinder.subscriptions.Route[model][obj.id].callback = updateCallback;
     }
 };
 
