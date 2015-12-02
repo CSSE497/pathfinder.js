@@ -47,7 +47,7 @@ PFCommodity.prototype.subscribe = function(onSubscribeCallback, updateCallback) 
  * Unsubscribes the commodity to updates.
  */
 PFCommodity.prototype.unsubscribe = function() {
-    this.pathfinder.modelUnsubscribeHelper("Commodity", this.id).bind(this.pathfinder);
+    this.pathfinder.modelUnsubscribeHelper("Commodity", this.id);
 };
 
 /**
@@ -56,7 +56,7 @@ PFCommodity.prototype.unsubscribe = function() {
  * @param {PFCommodity~routeUpdateCallback} updateCallback - The callback used when the commodity's route is updated
  */
 PFCommodity.prototype.routeSubscribe = function(onSubscribeCallback, updateCallback) {
-    this.pathfinder.routeSubscribeHelper("Commodity", this, onSubscribeCallback, updateCallback).bind(this.pathfinder);
+    this.pathfinder.routeSubscribeHelper("Commodity", this, onSubscribeCallback, updateCallback);
 };
 
 /**
@@ -76,5 +76,5 @@ PFCommodity.prototype.routeSubscribe = function(onSubscribeCallback, updateCallb
  * Unsubscribes the commodity to route updates.
  */
 PFCommodity.prototype.routeUnsubscribe = function() {
-    this.pathfinder.routeUnsubscribeHelper("Commodity", this.id).bind(this.pathfinder);
+    this.pathfinder.routeUnsubscribeHelper("Commodity", this.id);
 };
