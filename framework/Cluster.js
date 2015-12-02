@@ -21,7 +21,7 @@ function PFCluster(id, parentId, commodities, transports, pathfinder) {
  * @param {PFCluster~subscribeUpdateCallback} updateCallback - The callback used when updates to the cluster are received
  */
 PFCluster.prototype.subscribe = function(onSubscribeCallback, updateCallback) {
-    this.pathfinder.modelSubscribeHelper("Cluster", this, onSubscribeCallback, updateCallback).bind(this.pathfinder);
+    this.pathfinder.modelSubscribeHelper("Cluster", this, onSubscribeCallback, updateCallback);
 };
 
 /**
@@ -41,7 +41,7 @@ PFCluster.prototype.subscribe = function(onSubscribeCallback, updateCallback) {
  * Unsubscribes the cluster to updates.
  */
 PFCluster.prototype.unsubscribe = function() {
-    this.pathfinder.modelUnsubscribeHelper("Cluster", this.id).bind(this.pathfinder);
+    this.pathfinder.modelUnsubscribeHelper("Cluster", this.id);
 };
 
 /**
@@ -50,7 +50,7 @@ PFCluster.prototype.unsubscribe = function() {
  * @param {PFCluster~routeUpdateCallback} updateCallback - The callback used when the cluster's routes are updated
  */
 PFCluster.prototype.routeSubscribe = function(onSubscribeCallback, updateCallback) {
-    this.pathfinder.routeSubscribeHelper("Cluster", this, onSubscribeCallback, updateCallback).bind(this.pathfinder);
+    this.pathfinder.routeSubscribeHelper("Cluster", this, onSubscribeCallback, updateCallback);
 };
 
 /**
@@ -70,5 +70,5 @@ PFCluster.prototype.routeSubscribe = function(onSubscribeCallback, updateCallbac
  * Unsubscribes the cluster to route updates.
  */
 PFCluster.prototype.routeUnsubscribe = function() {
-    this.pathfinder.routeUnsubscribeHelper("Cluster", this.id).bind(this.pathfinder);
+    this.pathfinder.routeUnsubscribeHelper("Cluster", this.id);
 };
