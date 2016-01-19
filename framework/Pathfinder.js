@@ -2,19 +2,15 @@
  * Represents a pathfinder application. This object can be used
  * to query cluster data or request commodity transit.
  *
- * @param {string} url - WebSocket url to the Pathfinder service
- * @param {string} applicationIdentifier - The application identifier for your Pathfinder application
- * @param {string} userCredentials - Unique key from google id toolkit TODO figure out exactly what this is
+ * @param {string} appId - The application identifier for your Pathfinder application
  * @constructor
  */
-function Pathfinder(url, applicationIdentifier, userCredentials) {
-    this.url = url;
-    this.applicationIdentifier = applicationIdentifier;
+function Pathfinder(appId) {
+    this.url = "wss://api.thepathfinder.xyz/socket";
+    this.appId = appId;
 
-    // TODO figure out what to do with this later
-    this.userCredentials = userCredentials;
-    this.webSocket = new WebSocket(this.url);
-    this.webSocket.onmessage = this.onmessage.bind(this);
+    this.websocket = new WebSocket(this.url);
+    this.websocket.onmessage = this.onmessage.bind(this);
 
     // stores requests made before the socket is opened
     this.messageBacklog = [];
@@ -26,11 +22,11 @@ function Pathfinder(url, applicationIdentifier, userCredentials) {
         if(pathfinder.messageBacklog === undefined){
             // either onopen was called twice or something messed with messageBacklog
             throw new Error(
-                "Pathfinder.messageBacklog is undefined, was Pathfinder.webSocket.onopen called twice?"
+                "Pathfinder.messageBacklog is undefined, was Pathfinder.websocket.onopen called twice?"
             );
         }
         for(var i = 0; i < pathfinder.messageBacklog.length; ++i){
-            pathfinder.webSocket.send(pathfinder.messageBacklog[i]);
+            pathfinder.websocket.send(pathfinder.messageBacklog[i]);
         }
         delete pathfinder.messageBacklog;
     };
@@ -91,7 +87,7 @@ function Pathfinder(url, applicationIdentifier, userCredentials) {
  * Closes the Pathfinder service's WebSocket
  */
 Pathfinder.prototype.close = function() {
-  this.webSocket.close();
+  this.websocket.close();
 };
 
 Pathfinder.prototype.onmessage = function(msg) {
@@ -306,7 +302,7 @@ Pathfinder.prototype.requestHelper = function(type, model, id, obj, callback) {
                 this.messageBacklog.push(message);
                 break;
             case 1: // opened, send message
-                this.webSocket.send(message);
+                this.websocket.send(message);
                 break;
             case 2: // closing
                 throw new Error("Failed to send message: \""+message+"\" because socket is closing");
@@ -321,14 +317,12 @@ Pathfinder.prototype.requestHelper = function(type, model, id, obj, callback) {
  * @param {Pathfinder~getDefaultClusterIdCallback} callback - A callback that handles the response
  */
 Pathfinder.prototype.getDefaultClusterId = function(callback) {
-
     var obj = {
-        "getApplicationCluster": {
-            "id": this.applicationIdentifier
-        }
+        message: "GetApplicationCluster",
+        id: this.appId
     };
 
-    this.requestHelper("read", "ApplicationCluster", this.applicationIdentifier, obj, callback);
+    this.requestHelper("read", "ApplicationCluster", this.appId, obj, callback);
 };
 
 /**
@@ -339,12 +333,10 @@ Pathfinder.prototype.getDefaultClusterId = function(callback) {
 
 
 Pathfinder.prototype.readRequestHelper = function(model, id, callback) {
-
     var obj = {
-        "read" : {
-            "model" : model,
-            "id" : id
-        }
+        message: "Read",
+        model: model,
+        id: id
     };
 
     this.requestHelper("read", model, id, obj, callback);
@@ -397,10 +389,9 @@ Pathfinder.prototype.getTransport = function(id, callback) {
 
 Pathfinder.prototype.createRequestHelper = function(model, value, callback) {
     var obj = {
-        "create" : {
-            "model" : model,
-            "value" : value
-        }
+        message: "Create",
+        model: model,
+        value: value
     };
 
     this.requestHelper("created", model, null, obj, callback);
@@ -410,9 +401,8 @@ Pathfinder.prototype.createRequestHelper = function(model, value, callback) {
  * Creates a cluster.
  * @param {Pathfinder~createClusterCallback} callback - The callback that handles the response
  */
-Pathfinder.prototype.createCluster = function(callback) {
-    // TODO figure out if this needs an id or something.
-    this.createRequestHelper("Cluster", {}, callback);
+Pathfinder.prototype.createCluster = function(path, callback) {
+    this.createRequestHelper("Cluster", { path: path }, callback);
 };
 
 /**
@@ -427,7 +417,7 @@ Pathfinder.prototype.createCluster = function(callback) {
  * @param {number} startLong - The starting longitude of the commodity
  * @param {number} endLat - The ending latitude of the commodity
  * @param {number} endLong - The ending longitude of the commodity
- * @param {number} param - The capacity taken up by the commodity
+ * @param {object} metadata - The metadata associated with the commodity. Used by routing algorithm
  * @param {string} status - The status of the commodity
  * @param {number} clusterId - The cluster the commodity will be created under
  * @param {Pathfinder~createCommodityCallback} callback - The callback that handles the response
@@ -438,7 +428,7 @@ Pathfinder.prototype.createCommodity = function(startLat, startLong, endLat, end
         "startLongitude" : startLong,
         "endLatitude" : endLat,
         "endLongitude" : endLong,
-        "param" : param,
+        "metadata" : metadata,
         "status" : status,
         "clusterId" : clusterId
     };
@@ -456,7 +446,7 @@ Pathfinder.prototype.createCommodity = function(startLat, startLong, endLat, end
  * Creates a transport.
  * @param {number} latitude - The current latitude of the transport
  * @param {number} longitude - The current longitude of the transport
- * @param {number} capacity - The capacity of the transport
+ * @param {object} metadata - The metadata about the vehicle. Used by routing algorithm.
  * @param {string} status - The status of the transport
  * @param {number} clusterId - The cluster the transport will be created under
  * @param {Pathfinder~createTransportCallback} callback - The callback that handles the response
@@ -465,12 +455,12 @@ Pathfinder.prototype.createTransport = function(latitude, longitude, capacity, s
     var val = {
         "latitude" : latitude,
         "longitude" : longitude,
-        "capacity" : capacity,
+        "metadata" : metadata,
         "status" : status,
         "clusterId" : clusterId
     };
 
-    this.createRequestHelper("Transport", val, callback);
+    this.createRequestHelper("Vehicle", val, callback);
 };
 
 /**
@@ -481,11 +471,10 @@ Pathfinder.prototype.createTransport = function(latitude, longitude, capacity, s
 
 Pathfinder.prototype.updateRequestHelper = function(model, id, value, callback) {
     var obj = {
-        "update" : {
-            "model" : model,
-            "id" : id,
-            "value" : value
-        }
+        message: "Update",
+        model: model,
+        id: id,
+        value: value
     };
 
     this.requestHelper("updated", model, id, obj, callback);
@@ -578,10 +567,9 @@ Pathfinder.prototype.updateTransport = function(lat, long, status, capacity, id,
 
 Pathfinder.prototype.deleteRequestHelper = function(model, id, callback) {
     var obj = {
-        "delete" : {
-            "model" : model,
-            "id" : id
-        }
+        message: "Delete",
+        model: model,
+        id: id
     };
 
     this.requestHelper("deleted", model, id, obj, callback);
@@ -634,11 +622,11 @@ Pathfinder.prototype.deleteTransport = function(id, callback) {
 
 Pathfinder.prototype.routeRequestHelper = function(model, id, callback) {
     var obj = {
-        "route" : {
-            "model" : model,
-            "id" : id
-        }
+        message: "Route",
+        model: model,
+        id: id
     };
+
     this.requestHelper("routed", model, id, obj, callback);
 };
 
@@ -689,11 +677,11 @@ Pathfinder.prototype.routeTransport = function(id, callback) {
 
 Pathfinder.prototype.modelSubscribeRequestHelper = function(model, id, callback) {
     var obj = {
-        "subscribe" : {
-            "model" : model,
-            "id" : id
-        }
+        message: "Subscribe",
+        model: model,
+        id: id
     };
+
     this.requestHelper("subscribed", model, id, obj, callback);
 };
 
@@ -716,11 +704,11 @@ Pathfinder.prototype.modelUnsubscribeHelper = function(model, id) {
 
 Pathfinder.prototype.routeSubscribeRequestHelper = function(model, id, callback) {
     var obj = {
-        "routeSubscribe" : {
-            "model" : model,
-            "id" : id
-        }
+        message: "RouteSubscribe",
+        model: model,
+        id: id
     };
+
     this.requestHelper("routeSubscribed", model, id, obj, callback);
 };
 
