@@ -1,0 +1,20 @@
+{
+  "name": "pathfinder.js",
+  "description": "The Pathfinder JS Client Library allows developers to easily integrate Pathfinder routing service in their web applications.",
+  "main": "gulpfile.js",
+  "authors": [
+    "Adam Michael <adam@ajmichael.net>"
+    "David Robinson <robinsdm@rose-hulman.edu>"
+    "Carter Grove <grovecj@rose-hulman.edu>"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/csse497/pathfinder.js",
+  "moduleType": [],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
