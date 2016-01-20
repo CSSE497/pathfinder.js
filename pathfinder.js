@@ -109,7 +109,7 @@ Pathfinder.prototype.onmessage = function(msg) {
     } else if (data.message == "Updated") {
         this.handleUpdated(data.value);
     } else if (data.message == "Created") {
-        this.handleCreated(data.value);
+        this.handleCreated(data.value, data.model);
     } else if (data.message == "Deleted") {
         this.handleDeleted(data.value);
     } else if (data.message == "RouteSubscribed") {
@@ -187,14 +187,14 @@ Pathfinder.prototype.constructModel = function(value, model) {
     }
 };
 
-Pathfinder.prototype.handleCreated = function(data) {
-    var request = this.pendingRequests.created[data.model].pop();
+Pathfinder.prototype.handleCreated = function(data, model) {
+    var request = this.pendingRequests.created[model].pop();
 
     if(request === undefined) {
-        console.error("Create " + data.model + " request failed: " + data);
+        console.error("Create " + model + " request failed: " + data);
     } else {
         var callback = request.callback;
-        callback(this.constructModel(data.value, data.model));
+        callback(this.constructModel(data, model));
 
     }
 };
@@ -398,7 +398,7 @@ Pathfinder.prototype.createRequestHelper = function(model, value, callback) {
  * @param {Pathfinder~createClusterCallback} callback - The callback that handles the response
  */
 Pathfinder.prototype.createCluster = function(path, callback) {
-    this.createRequestHelper("Cluster", { path: path }, callback);
+    this.createRequestHelper("Cluster", { id: path }, callback);
 };
 
 /**
