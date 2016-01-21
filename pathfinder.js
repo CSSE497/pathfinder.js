@@ -2,19 +2,15 @@
  * Represents a pathfinder application. This object can be used
  * to query cluster data or request commodity transit.
  *
- * @param {string} url - WebSocket url to the Pathfinder service
- * @param {string} applicationIdentifier - The application identifier for your Pathfinder application
- * @param {string} userCredentials - Unique key from google id toolkit TODO figure out exactly what this is
+ * @param {string} appId - The application identifier for your Pathfinder application
  * @constructor
  */
-function Pathfinder(url, applicationIdentifier, userCredentials) {
-    this.url = url;
-    this.applicationIdentifier = applicationIdentifier;
+function Pathfinder(appId) {
+    this.url = "wss://api.thepathfinder.xyz/socket";
+    this.appId = appId;
 
-    // TODO figure out what to do with this later
-    this.userCredentials = userCredentials;
-    this.webSocket = new WebSocket(this.url);
-    this.webSocket.onmessage = this.onmessage.bind(this);
+    this.websocket = new WebSocket(this.url);
+    this.websocket.onmessage = this.onmessage.bind(this);
 
     // stores requests made before the socket is opened
     this.messageBacklog = [];
@@ -26,11 +22,11 @@ function Pathfinder(url, applicationIdentifier, userCredentials) {
         if(pathfinder.messageBacklog === undefined){
             // either onopen was called twice or something messed with messageBacklog
             throw new Error(
-                "Pathfinder.messageBacklog is undefined, was Pathfinder.webSocket.onopen called twice?"
+                "Pathfinder.messageBacklog is undefined, was Pathfinder.websocket.onopen called twice?"
             );
         }
         for(var i = 0; i < pathfinder.messageBacklog.length; ++i){
-            pathfinder.webSocket.send(pathfinder.messageBacklog[i]);
+            pathfinder.websocket.send(pathfinder.messageBacklog[i]);
         }
         delete pathfinder.messageBacklog;
     };
@@ -91,7 +87,7 @@ function Pathfinder(url, applicationIdentifier, userCredentials) {
  * Closes the Pathfinder service's WebSocket
  */
 Pathfinder.prototype.close = function() {
-  this.webSocket.close();
+  this.websocket.close();
 };
 
 Pathfinder.prototype.onmessage = function(msg) {
@@ -103,22 +99,25 @@ Pathfinder.prototype.onmessage = function(msg) {
         return;
     }
 
-    if(data.hasOwnProperty("routed")) {
-        this.handleRouted(data.routed);
-    } else if(data.hasOwnProperty("updated")) {
-        this.handleUpdated(data.updated);
-    } else if(data.hasOwnProperty("created")) {
-        this.handleCreated(data.created);
-    } else if(data.hasOwnProperty("model")) {
-        this.handleRead(data.model);
-    } else if(data.hasOwnProperty("deleted")) {
-        this.handleDeleted(data.deleted);
-    } else if(data.hasOwnProperty("routeSubscribed")) {
-        this.handleRouteSubscribed(data.routeSubscribed)
-    } else if(data.hasOwnProperty("subscribed")) {
-        this.handleSubscribed(data.subscribed);
-    } else if(data.hasOwnProperty("applicationCluster")) {
-        this.handleReadDefaultClusterId(data.applicationCluster);
+    var message = data.message;
+    console.log(JSON.stringify(data));
+
+    if (data.message == "Routed") {
+        this.handleRouted(data);
+    } else if (data.message == "Model") {
+        this.handleRead(data.value, data.model);
+    } else if (data.message == "Updated") {
+        this.handleUpdated(data.value);
+    } else if (data.message == "Created") {
+        this.handleCreated(data.value, data.model);
+    } else if (data.message == "Deleted") {
+        this.handleDeleted(data.value);
+    } else if (data.message == "RouteSubscribed") {
+        this.handleRouteSubscribed(data);
+    } else if (data.message == "Subscribed") {
+        this.handleSubscribed(data);
+    } else if (data.message = "ApplicationCluster") {
+        this.handleReadDefaultClusterId(data.value);
     } else {
         console.error("Unknown message: " + JSON.stringify(data));
     }
@@ -134,16 +133,21 @@ Pathfinder.prototype.constructCluster = function(data) {
         this
     );
 
-    var transports = data.transports.map(
+    var transports = data.vehicles.map(
         this.constructTransport,
+        this
+    );
+
+    var subclusters = data.subClusters.map(
+        this.constructCluster,
         this
     );
 
     return new PFCluster(
         data.id,
-        data.parent,
         commodities,
         transports,
+        subclusters,
         this
     );
 };
@@ -156,7 +160,7 @@ Pathfinder.prototype.constructCommodity = function(data) {
         data.endLatitude,
         data.endLongitude,
         data.status,
-        data.capacity,
+        data.metadata,
         this
     );
 };
@@ -183,14 +187,14 @@ Pathfinder.prototype.constructModel = function(value, model) {
     }
 };
 
-Pathfinder.prototype.handleCreated = function(data) {
-    var request = this.pendingRequests.created[data.model].pop();
+Pathfinder.prototype.handleCreated = function(data, model) {
+    var request = this.pendingRequests.created[model].pop();
 
     if(request === undefined) {
-        console.error("Create " + data.model + " request failed: " + data);
+        console.error("Create " + model + " request failed: " + data);
     } else {
         var callback = request.callback;
-        callback(this.constructModel(data.value, data.model));
+        callback(this.constructModel(data, model));
 
     }
 };
@@ -219,8 +223,8 @@ Pathfinder.prototype.handleDeleted = function(data) {
     this.handleHelper(data.value, "deleted", data.model);
 };
 
-Pathfinder.prototype.handleRead = function(data) {
-    this.handleHelper(data.value, "read", data.model);
+Pathfinder.prototype.handleRead = function(data, model) {
+    this.handleHelper(data, "read", model);
 };
 
 Pathfinder.prototype.handleRouted = function(data) {
@@ -277,7 +281,7 @@ Pathfinder.prototype.handleReadDefaultClusterId = function(data) {
     } else {
         var callback = request.callback;
         delete this.pendingRequests.read.ApplicationCluster[data.id];
-        callback(data.clusterId);
+        callback(data.id);
     }
 };
 
@@ -306,7 +310,7 @@ Pathfinder.prototype.requestHelper = function(type, model, id, obj, callback) {
                 this.messageBacklog.push(message);
                 break;
             case 1: // opened, send message
-                this.webSocket.send(message);
+                this.websocket.send(message);
                 break;
             case 2: // closing
                 throw new Error("Failed to send message: \""+message+"\" because socket is closing");
@@ -316,38 +320,22 @@ Pathfinder.prototype.requestHelper = function(type, model, id, obj, callback) {
     }
 };
 
-/**
- * Gets the default cluster id for the specific application.
- * @param {Pathfinder~getDefaultClusterIdCallback} callback - A callback that handles the response
- */
-Pathfinder.prototype.getDefaultClusterId = function(callback) {
-
-    var obj = {
-        "getApplicationCluster": {
-            "id": this.applicationIdentifier
-        }
-    };
-
-    this.requestHelper("read", "ApplicationCluster", this.applicationIdentifier, obj, callback);
-};
-
-/**
- * This callback is called after the getDefaultClusterId function receives a response.
- * @callback Pathfinder~getDefaultClusterIdCallback
- * @param {number} clusterId - The default cluster id
- */
-
-
 Pathfinder.prototype.readRequestHelper = function(model, id, callback) {
-
     var obj = {
-        "read" : {
-            "model" : model,
-            "id" : id
-        }
+        message: "Read",
+        model: model,
+        id: id
     };
 
     this.requestHelper("read", model, id, obj, callback);
+};
+
+/**
+ * Gets the default cluster for the specific application.
+ * @param {Pathfinder~getClusterCallback} callback - A callback that handles the response
+ */
+Pathfinder.prototype.getDefaultCluster = function(callback) {
+    this.readRequestHelper("Cluster", this.appId, callback);
 };
 
 /**
@@ -397,10 +385,9 @@ Pathfinder.prototype.getTransport = function(id, callback) {
 
 Pathfinder.prototype.createRequestHelper = function(model, value, callback) {
     var obj = {
-        "create" : {
-            "model" : model,
-            "value" : value
-        }
+        message: "Create",
+        model: model,
+        value: value
     };
 
     this.requestHelper("created", model, null, obj, callback);
@@ -410,9 +397,8 @@ Pathfinder.prototype.createRequestHelper = function(model, value, callback) {
  * Creates a cluster.
  * @param {Pathfinder~createClusterCallback} callback - The callback that handles the response
  */
-Pathfinder.prototype.createCluster = function(callback) {
-    // TODO figure out if this needs an id or something.
-    this.createRequestHelper("Cluster", {}, callback);
+Pathfinder.prototype.createCluster = function(path, callback) {
+    this.createRequestHelper("Cluster", { id: path }, callback);
 };
 
 /**
@@ -424,21 +410,21 @@ Pathfinder.prototype.createCluster = function(callback) {
 /**
  * Creates a commodity
  * @param {number} startLat - The starting latitude of the commodity
- * @param {number} startLong - The starting longitude of the commodity
+ * @param {number} startLng - The starting longitude of the commodity
  * @param {number} endLat - The ending latitude of the commodity
- * @param {number} endLong - The ending longitude of the commodity
- * @param {number} param - The capacity taken up by the commodity
+ * @param {number} endLng - The ending longitude of the commodity
+ * @param {object} metadata - The metadata associated with the commodity. Used by routing algorithm
  * @param {string} status - The status of the commodity
  * @param {number} clusterId - The cluster the commodity will be created under
  * @param {Pathfinder~createCommodityCallback} callback - The callback that handles the response
  */
-Pathfinder.prototype.createCommodity = function(startLat, startLong, endLat, endLong, param, status, clusterId, callback) {
+Pathfinder.prototype.createCommodity = function(startLat, startLng, endLat, endLng, param, status, clusterId, callback) {
     var val = {
         "startLatitude" : startLat,
-        "startLongitude" : startLong,
+        "startLongitude" : startLng,
         "endLatitude" : endLat,
-        "endLongitude" : endLong,
-        "param" : param,
+        "endLongitude" : endLng,
+        "metadata" : metadata,
         "status" : status,
         "clusterId" : clusterId
     };
@@ -456,7 +442,7 @@ Pathfinder.prototype.createCommodity = function(startLat, startLong, endLat, end
  * Creates a transport.
  * @param {number} latitude - The current latitude of the transport
  * @param {number} longitude - The current longitude of the transport
- * @param {number} capacity - The capacity of the transport
+ * @param {object} metadata - The metadata about the vehicle. Used by routing algorithm.
  * @param {string} status - The status of the transport
  * @param {number} clusterId - The cluster the transport will be created under
  * @param {Pathfinder~createTransportCallback} callback - The callback that handles the response
@@ -465,12 +451,12 @@ Pathfinder.prototype.createTransport = function(latitude, longitude, capacity, s
     var val = {
         "latitude" : latitude,
         "longitude" : longitude,
-        "capacity" : capacity,
+        "metadata" : metadata,
         "status" : status,
         "clusterId" : clusterId
     };
 
-    this.createRequestHelper("Transport", val, callback);
+    this.createRequestHelper("Vehicle", val, callback);
 };
 
 /**
@@ -481,11 +467,10 @@ Pathfinder.prototype.createTransport = function(latitude, longitude, capacity, s
 
 Pathfinder.prototype.updateRequestHelper = function(model, id, value, callback) {
     var obj = {
-        "update" : {
-            "model" : model,
-            "id" : id,
-            "value" : value
-        }
+        message: "Update",
+        model: model,
+        id: id,
+        value: value
     };
 
     this.requestHelper("updated", model, id, obj, callback);
@@ -494,31 +479,31 @@ Pathfinder.prototype.updateRequestHelper = function(model, id, value, callback) 
 /**
  * Updates a commodity. Use null for any parameter that should not change.
  * @param {number} startLat - The starting latitude of the commodity
- * @param {number} startLong - The starting longitude of the commodity
+ * @param {number} startLng - The starting longitude of the commodity
  * @param {number} endLat - The ending latitude of the commodity
- * @param {number} endLong - The ending longitude of the commodity
+ * @param {number} endLng - The ending longitude of the commodity
  * @param {number} param - The capacity taken up by the commodity
  * @param {string} status - The status of the commodity
  * @param {number} id - The id of the commodity to be updated
  * @param {Pathfinder~updateCommodityCallback} callback - The callback that handles the response
  */
-Pathfinder.prototype.updateCommodity = function(startLat, startLong, endLat, endLong, status, param, id, callback) {
+Pathfinder.prototype.updateCommodity = function(startLat, startLng, endLat, endLng, status, param, id, callback) {
     var value = {};
 
     if(startLat !== null) {
         value.startLatitude = startLat;
     }
 
-    if(startLong !== null) {
-        value.startLongitude = startLong;
+    if(startLng !== null) {
+        value.startLongitude = startLng;
     }
 
     if(endLat !== null) {
         value.endLatitude = endLat;
     }
 
-    if(endLong !== null) {
-        value.endLongitude = endLong;
+    if(endLng !== null) {
+        value.endLongitude = endLng;
     }
 
     if(status !== null) {
@@ -578,10 +563,9 @@ Pathfinder.prototype.updateTransport = function(lat, long, status, capacity, id,
 
 Pathfinder.prototype.deleteRequestHelper = function(model, id, callback) {
     var obj = {
-        "delete" : {
-            "model" : model,
-            "id" : id
-        }
+        message: "Delete",
+        model: model,
+        id: id
     };
 
     this.requestHelper("deleted", model, id, obj, callback);
@@ -634,11 +618,11 @@ Pathfinder.prototype.deleteTransport = function(id, callback) {
 
 Pathfinder.prototype.routeRequestHelper = function(model, id, callback) {
     var obj = {
-        "route" : {
-            "model" : model,
-            "id" : id
-        }
+        message: "Route",
+        model: model,
+        id: id
     };
+
     this.requestHelper("routed", model, id, obj, callback);
 };
 
@@ -689,11 +673,11 @@ Pathfinder.prototype.routeTransport = function(id, callback) {
 
 Pathfinder.prototype.modelSubscribeRequestHelper = function(model, id, callback) {
     var obj = {
-        "subscribe" : {
-            "model" : model,
-            "id" : id
-        }
+        message: "Subscribe",
+        model: model,
+        id: id
     };
+
     this.requestHelper("subscribed", model, id, obj, callback);
 };
 
@@ -711,16 +695,16 @@ Pathfinder.prototype.modelSubscribeHelper = function(model, obj, onSubscribeCall
 
 Pathfinder.prototype.modelUnsubscribeHelper = function(model, id) {
     delete this.pathfinder.subscriptions[model][id];
-    // need to tell the server to stop sending updates when this gets implemented
+    // TODO: need to tell the server to stop sending updates when this gets implemented
 };
 
 Pathfinder.prototype.routeSubscribeRequestHelper = function(model, id, callback) {
     var obj = {
-        "routeSubscribe" : {
-            "model" : model,
-            "id" : id
-        }
+        message: "RouteSubscribe",
+        model: model,
+        id: id
     };
+
     this.requestHelper("routeSubscribed", model, id, obj, callback);
 };
 
@@ -732,11 +716,243 @@ Pathfinder.prototype.routeSubscribeHelper = function(model, obj, onSubscribeCall
         };
         this.routeSubscribeRequestHelper(model, obj.id, onSubscribeCallback);
     } else {
-        this.pathfinder.subscriptions.Route[model][obj.id].callback = updateCallback;
+        this.subscriptions.Route[model][obj.id].callback = updateCallback;
     }
 };
 
 Pathfinder.prototype.routeUnsubscribeHelper = function(model, id) {
-    delete this.pathfinder.subscriptions.Route[model][id];
+    delete this.subscriptions.Route[model][id];
     // need to tell the server to stop sending updates when this gets implemented
+};
+
+/**
+ * Pathfinder cluster constructor. Do not call this constructor it is for the Pathfinder object to use.
+ * @param {number} id - The id of the cluster
+ * @param {array} commodities - Array of the commodities in the cluster
+ * @param {array} transports - Array of the transports in the cluster
+ * @param {Pathfinder} pathfinder - Pathfinder object that creates this commodity
+ * @constructor
+ */
+function PFCluster(id, commodities, transports, subclusters, pathfinder) {
+    this.id = id;
+    this.commodities = commodities;
+    this.transports = transports;
+    this.subclusters = subclusters;
+    this.pathfinder = pathfinder;
+}
+
+/**
+ * Subscribe for updates to the cluster.
+ * @param {PFCluster~subscribeOnSubscribeCallback} onSubscribeCallback - The callback used when the subscribe request is successful
+ * @param {PFCluster~subscribeUpdateCallback} updateCallback - The callback used when updates to the cluster are received
+ */
+PFCluster.prototype.subscribe = function(onSubscribeCallback, updateCallback) {
+    this.pathfinder.modelSubscribeHelper("Cluster", this, onSubscribeCallback, updateCallback);
+};
+
+/**
+ * This callback is called after the subscribe function receives a response.
+ * @callback PFCluster~subscribeOnSubscribeCallback
+ * @param {number} id - Id of the cluster subscribed to
+ */
+
+/**
+ * This callback is called when the subscribe function receives an receives update response.
+ * @callback PFCluster~subscribeUpdateCallback
+ * @param {PFCluster} cluster - The cluster subscribed to
+ * @param {PFCluster} updatedCluster - The updated cluster received
+ */
+
+/**
+ * Unsubscribes the cluster to updates.
+ */
+PFCluster.prototype.unsubscribe = function() {
+    this.pathfinder.modelUnsubscribeHelper("Cluster", this.id);
+};
+
+/**
+ * Subscribe for route updates to the cluster.
+ * @param {PFCluster~routeOnSubscribeCallback} onSubscribeCallback - The callback used when the route subscribe request is successful
+ * @param {PFCluster~routeUpdateCallback} updateCallback - The callback used when the cluster's routes are updated
+ */
+PFCluster.prototype.routeSubscribe = function(onSubscribeCallback, updateCallback) {
+    this.pathfinder.routeSubscribeHelper("Cluster", this, onSubscribeCallback, updateCallback);
+};
+
+/**
+ * This callback is called after the route subscribe function receives a response.
+ * @callback PFCluster~routeOnSubscribeCallback
+ * @param {number} id - Id of the cluster's routes subscribed to
+ */
+
+/**
+ * This callback is called when the route subscribe function receives an receives update response.
+ * @callback PFCluster~routeUpdateCallback
+ * @param {PFCluster} cluster - The cluster subscribed to
+ * @param {object} routes - The updated route information
+ */
+
+/**
+ * Unsubscribes the cluster to route updates.
+ */
+PFCluster.prototype.routeUnsubscribe = function() {
+    this.pathfinder.routeUnsubscribeHelper("Cluster", this.id);
+};
+
+/**
+ * Pathfinder commodity constructor. Do not call this constructor it is for the Pathfinder object to use.
+ * @param {number} id - Id of the commodity
+ * @param {number} startLat - The starting latitude of the commodity
+ * @param {number} startLng - The starting longitude of the commodity
+ * @param {number} endLat - The ending latitude of the commodity
+ * @param {number} endLng - The ending longitude of the commodity
+ * @param {string} status - The status of the commodity
+ * @param {object} metadata - The metadata of the commodity
+ * @param {Pathfinder} pathfinder - Pathfinder object that creates this commodity
+ * @constructor
+ */
+function PFCommodity(id, startLat, startLng, endLat, endLng, status, metadata, pathfinder) {
+    this.id = id;
+    this.startLat = startLat;
+    this.startLng = startLng;
+    this.endLat = endLat;
+    this.endLng = endLng;
+    this.status = status;
+    this.metadata = metadata;
+    this.pathfinder = pathfinder;
+}
+
+/**
+ * Subscribe for updates to the commodity.
+ * @param {PFCommodity~subscribeOnSubscribeCallback} onSubscribeCallback - The callback used when the subscribe request is successful
+ * @param {PFCommodity~subscribeUpdateCallback} updateCallback - The callback used when updates to the commodity are received
+ */
+PFCommodity.prototype.subscribe = function(onSubscribeCallback, updateCallback) {
+    this.pathfinder.modelSubscribeHelper("Commodity", this, onSubscribeCallback, updateCallback).bind(this.pathfinder);
+};
+
+/**
+ * This callback is called after the subscribe function receives a response.
+ * @callback PFCommodity~subscribeOnSubscribeCallback
+ * @param {number} id - Id of the commodity subscribed to
+ */
+
+/**
+ * This callback is called when the subscribe function receives an receives update response.
+ * @callback PFCommodity~subscribeUpdateCallback
+ * @param {PFCommodity} commodity - The commodity subscribed to
+ * @param {PFCommodity} updatedCommodity - The updated commodity received
+ */
+
+/**
+ * Unsubscribes the commodity to updates.
+ */
+PFCommodity.prototype.unsubscribe = function() {
+    this.pathfinder.modelUnsubscribeHelper("Commodity", this.id);
+};
+
+/**
+ * Subscribe for route updates to the commodity.
+ * @param {PFCommodity~routeOnSubscribeCallback} onSubscribeCallback - The callback used when the route subscribe request is successful
+ * @param {PFCommodity~routeUpdateCallback} updateCallback - The callback used when the commodity's route is updated
+ */
+PFCommodity.prototype.routeSubscribe = function(onSubscribeCallback, updateCallback) {
+    this.pathfinder.routeSubscribeHelper("Commodity", this, onSubscribeCallback, updateCallback);
+};
+
+/**
+ * This callback is called after the route subscribe function receives a response.
+ * @callback PFCommodity~routeOnSubscribeCallback
+ * @param {number} id - Id of the commodity's route subscribed to
+ */
+
+/**
+ * This callback is called when the route subscribe function receives an receives update response.
+ * @callback PFCommodity~routeUpdateCallback
+ * @param {PFCommodity} commodity - The commodity subscribed to
+ * @param {object} route - The updated route information
+ */
+
+/**
+ * Unsubscribes the commodity to route updates.
+ */
+PFCommodity.prototype.routeUnsubscribe = function() {
+    this.pathfinder.routeUnsubscribeHelper("Commodity", this.id);
+};
+
+/**
+ * Pathfinder transport constructor. Do not call this constructor it is for the Pathfinder object to use.
+ * @param {number} id - Id of the transport
+ * @param {number} longitude - The longitude of the transport
+ * @param {number} latitude - The latitude of the transport
+ * @param {string} status - The status of the transport
+ * @param {object} metadata - The metadata of the transport
+ * @param {Pathfinder} pathfinder - Pathfinder object that creates this transport
+ * @constructor
+ */
+function PFTransport(id, longitude, latitude, status, metadata, pathfinder) {
+    this.id = id;
+    this.lat = latitude;
+    this.lng = longitude;
+    this.status = status;
+    this.metadata = metadata;
+    this.pathfinder = pathfinder;
+}
+
+/**
+ * Subscribe for updates to the transport.
+ * @param {PFTransport~subscribeOnSubscribeCallback} onSubscribeCallback - The callback used when the subscribe request is successful
+ * @param {PFTransport~subscribeUpdateCallback} updateCallback - The callback used when updates to the transport are received
+ */
+PFTransport.prototype.subscribe = function(onSubscribeCallback, updateCallback) {
+    this.pathfinder.modelSubscribeHelper("Transport", this, onSubscribeCallback, updateCallback).bind(this.pathfinder);
+};
+
+/**
+ * This callback is called after the subscribe function receives a response.
+ * @callback PFTransport~subscribeOnSubscribeCallback
+ * @param {number} id - Id of the transport subscribed to
+ */
+
+/**
+ * This callback is called when the subscribe function receives an receives update response.
+ * @callback PFTransport~subscribeUpdateCallback
+ * @param {PFTransport} transport - The transport subscribed to
+ * @param {PFTransport} updatedTransport - The updated transport received
+ */
+
+/**
+ * Unsubscribes the transport to updates.
+ */
+PFTransport.prototype.unsubscribe = function() {
+    this.pathfinder.modelUnsubscribeHelper("Transport", this.id).bind(this.pathfinder);
+};
+
+/**
+ * Subscribe for route updates to the transport.
+ * @param {PFTransport~routeOnSubscribeCallback} onSubscribeCallback - The callback used when the route subscribe request is successful
+ * @param {PFTransport~routeUpdateCallback} updateCallback - The callback used when the transport's route is updated
+ */
+PFTransport.prototype.routeSubscribe = function(onSubscribeCallback, updateCallback) {
+    this.pathfinder.routeSubscribeHelper("Transport", this, onSubscribeCallback, updateCallback).bind(this.pathfinder);
+};
+
+/**
+ * This callback is called after the route subscribe function receives a response.
+ * @callback PFTransport~routeOnSubscribeCallback
+ * @param {number} id - Id of the transport's route subscribed to
+ */
+
+/**
+ * This callback is called when the route subscribe function receives an receives update response.
+ * @callback PFTransport~routeUpdateCallback
+ * @param {PFTransport} transport - The transport subscribed to
+ * @param {object} route - The updated route information
+ */
+
+/**
+ * Unsubscribes the transport to route updates.
+ */
+PFTransport.prototype.routeUnsubscribe = function() {
+    this.pathfinder.routeUnsubscribeHelper("Transport", this.id).bind(this.pathfinder);
 };
