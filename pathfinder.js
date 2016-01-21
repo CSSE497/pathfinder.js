@@ -103,7 +103,7 @@ Pathfinder.prototype.onmessage = function(msg) {
     console.log(JSON.stringify(data));
 
     if (data.message == "Routed") {
-        this.handleRouted(data.value);
+        this.handleRouted(data);
     } else if (data.message == "Model") {
         this.handleRead(data.value, data.model);
     } else if (data.message == "Updated") {
@@ -113,9 +113,9 @@ Pathfinder.prototype.onmessage = function(msg) {
     } else if (data.message == "Deleted") {
         this.handleDeleted(data.value);
     } else if (data.message == "RouteSubscribed") {
-        this.handleRouteSubscribed(data.value);
+        this.handleRouteSubscribed(data);
     } else if (data.message == "Subscribed") {
-        this.handleSubscribed(data.value);
+        this.handleSubscribed(data);
     } else if (data.message = "ApplicationCluster") {
         this.handleReadDefaultClusterId(data.value);
     } else {
@@ -410,20 +410,20 @@ Pathfinder.prototype.createCluster = function(path, callback) {
 /**
  * Creates a commodity
  * @param {number} startLat - The starting latitude of the commodity
- * @param {number} startLong - The starting longitude of the commodity
+ * @param {number} startLng - The starting longitude of the commodity
  * @param {number} endLat - The ending latitude of the commodity
- * @param {number} endLong - The ending longitude of the commodity
+ * @param {number} endLng - The ending longitude of the commodity
  * @param {object} metadata - The metadata associated with the commodity. Used by routing algorithm
  * @param {string} status - The status of the commodity
  * @param {number} clusterId - The cluster the commodity will be created under
  * @param {Pathfinder~createCommodityCallback} callback - The callback that handles the response
  */
-Pathfinder.prototype.createCommodity = function(startLat, startLong, endLat, endLong, param, status, clusterId, callback) {
+Pathfinder.prototype.createCommodity = function(startLat, startLng, endLat, endLng, param, status, clusterId, callback) {
     var val = {
         "startLatitude" : startLat,
-        "startLongitude" : startLong,
+        "startLongitude" : startLng,
         "endLatitude" : endLat,
-        "endLongitude" : endLong,
+        "endLongitude" : endLng,
         "metadata" : metadata,
         "status" : status,
         "clusterId" : clusterId
@@ -479,31 +479,31 @@ Pathfinder.prototype.updateRequestHelper = function(model, id, value, callback) 
 /**
  * Updates a commodity. Use null for any parameter that should not change.
  * @param {number} startLat - The starting latitude of the commodity
- * @param {number} startLong - The starting longitude of the commodity
+ * @param {number} startLng - The starting longitude of the commodity
  * @param {number} endLat - The ending latitude of the commodity
- * @param {number} endLong - The ending longitude of the commodity
+ * @param {number} endLng - The ending longitude of the commodity
  * @param {number} param - The capacity taken up by the commodity
  * @param {string} status - The status of the commodity
  * @param {number} id - The id of the commodity to be updated
  * @param {Pathfinder~updateCommodityCallback} callback - The callback that handles the response
  */
-Pathfinder.prototype.updateCommodity = function(startLat, startLong, endLat, endLong, status, param, id, callback) {
+Pathfinder.prototype.updateCommodity = function(startLat, startLng, endLat, endLng, status, param, id, callback) {
     var value = {};
 
     if(startLat !== null) {
         value.startLatitude = startLat;
     }
 
-    if(startLong !== null) {
-        value.startLongitude = startLong;
+    if(startLng !== null) {
+        value.startLongitude = startLng;
     }
 
     if(endLat !== null) {
         value.endLatitude = endLat;
     }
 
-    if(endLong !== null) {
-        value.endLongitude = endLong;
+    if(endLng !== null) {
+        value.endLongitude = endLng;
     }
 
     if(status !== null) {
@@ -695,7 +695,7 @@ Pathfinder.prototype.modelSubscribeHelper = function(model, obj, onSubscribeCall
 
 Pathfinder.prototype.modelUnsubscribeHelper = function(model, id) {
     delete this.pathfinder.subscriptions[model][id];
-    // need to tell the server to stop sending updates when this gets implemented
+    // TODO: need to tell the server to stop sending updates when this gets implemented
 };
 
 Pathfinder.prototype.routeSubscribeRequestHelper = function(model, id, callback) {
@@ -716,12 +716,12 @@ Pathfinder.prototype.routeSubscribeHelper = function(model, obj, onSubscribeCall
         };
         this.routeSubscribeRequestHelper(model, obj.id, onSubscribeCallback);
     } else {
-        this.pathfinder.subscriptions.Route[model][obj.id].callback = updateCallback;
+        this.subscriptions.Route[model][obj.id].callback = updateCallback;
     }
 };
 
 Pathfinder.prototype.routeUnsubscribeHelper = function(model, id) {
-    delete this.pathfinder.subscriptions.Route[model][id];
+    delete this.subscriptions.Route[model][id];
     // need to tell the server to stop sending updates when this gets implemented
 };
 
@@ -803,20 +803,20 @@ PFCluster.prototype.routeUnsubscribe = function() {
  * Pathfinder commodity constructor. Do not call this constructor it is for the Pathfinder object to use.
  * @param {number} id - Id of the commodity
  * @param {number} startLat - The starting latitude of the commodity
- * @param {number} startLong - The starting longitude of the commodity
+ * @param {number} startLng - The starting longitude of the commodity
  * @param {number} endLat - The ending latitude of the commodity
- * @param {number} endLong - The ending longitude of the commodity
+ * @param {number} endLng - The ending longitude of the commodity
  * @param {string} status - The status of the commodity
  * @param {object} metadata - The metadata of the commodity
  * @param {Pathfinder} pathfinder - Pathfinder object that creates this commodity
  * @constructor
  */
-function PFCommodity(id, startLat, startLong, endLat, endLong, status, metadata, pathfinder) {
+function PFCommodity(id, startLat, startLng, endLat, endLng, status, metadata, pathfinder) {
     this.id = id;
     this.startLat = startLat;
-    this.startLong = startLong;
+    this.startLng = startLng;
     this.endLat = endLat;
-    this.endLong = endLong;
+    this.endLng = endLng;
     this.status = status;
     this.metadata = metadata;
     this.pathfinder = pathfinder;
@@ -892,8 +892,8 @@ PFCommodity.prototype.routeUnsubscribe = function() {
  */
 function PFTransport(id, longitude, latitude, status, metadata, pathfinder) {
     this.id = id;
-    this.longitude = longitude;
-    this.latitude = latitude;
+    this.lat = latitude;
+    this.lng = longitude;
     this.status = status;
     this.metadata = metadata;
     this.pathfinder = pathfinder;
