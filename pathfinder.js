@@ -6,9 +6,8 @@
  * @constructor
  */
 function Pathfinder(appId) {
-    this.url = "wss://api.thepathfinder.xyz/socket";
+    this.url = "wss://api.thepathfinder.xyz/socket?appId=" + appId;
     this.appId = appId;
-
     this.websocket = new WebSocket(this.url);
     this.websocket.onmessage = this.onmessage.bind(this);
 
