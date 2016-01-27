@@ -334,7 +334,7 @@ Pathfinder.prototype.readRequestHelper = function(model, id, callback) {
  * @param {Pathfinder~getClusterCallback} callback - A callback that handles the response
  */
 Pathfinder.prototype.getDefaultCluster = function(callback) {
-    this.readRequestHelper("Cluster", this.appId, callback);
+    this.readRequestHelper("Cluster", "/root", callback);
 };
 
 /**
