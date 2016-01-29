@@ -170,7 +170,7 @@ Pathfinder.prototype.constructTransport = function(data) {
         data.longitude,
         data.latitude,
         data.status,
-        data.capacity,
+        data.metadata,
         this
     );
 };
@@ -417,7 +417,7 @@ Pathfinder.prototype.createCluster = function(path, callback) {
  * @param {number} clusterId - The cluster the commodity will be created under
  * @param {Pathfinder~createCommodityCallback} callback - The callback that handles the response
  */
-Pathfinder.prototype.createCommodity = function(startLat, startLng, endLat, endLng, param, status, clusterId, callback) {
+Pathfinder.prototype.createCommodity = function(startLat, startLng, endLat, endLng, metadata, status, clusterId, callback) {
     var val = {
         "startLatitude" : startLat,
         "startLongitude" : startLng,
@@ -446,7 +446,7 @@ Pathfinder.prototype.createCommodity = function(startLat, startLng, endLat, endL
  * @param {number} clusterId - The cluster the transport will be created under
  * @param {Pathfinder~createTransportCallback} callback - The callback that handles the response
  */
-Pathfinder.prototype.createTransport = function(latitude, longitude, capacity, status, clusterId, callback) {
+Pathfinder.prototype.createTransport = function(latitude, longitude, metadata, status, clusterId, callback) {
     var val = {
         "latitude" : latitude,
         "longitude" : longitude,
@@ -481,12 +481,12 @@ Pathfinder.prototype.updateRequestHelper = function(model, id, value, callback) 
  * @param {number} startLng - The starting longitude of the commodity
  * @param {number} endLat - The ending latitude of the commodity
  * @param {number} endLng - The ending longitude of the commodity
- * @param {number} param - The capacity taken up by the commodity
+ * @param {number} metadata - The metadata taken up by the commodity
  * @param {string} status - The status of the commodity
  * @param {number} id - The id of the commodity to be updated
  * @param {Pathfinder~updateCommodityCallback} callback - The callback that handles the response
  */
-Pathfinder.prototype.updateCommodity = function(startLat, startLng, endLat, endLng, status, param, id, callback) {
+Pathfinder.prototype.updateCommodity = function(startLat, startLng, endLat, endLng, status, metadata, id, callback) {
     var value = {};
 
     if(startLat !== null) {
@@ -509,8 +509,8 @@ Pathfinder.prototype.updateCommodity = function(startLat, startLng, endLat, endL
         value.status = status;
     }
 
-    if(param !== null) {
-        value.param = param;
+    if(metadata !== null) {
+        value.metadata = metadata;
     }
 
     this.updateRequestHelper("Commodity", id, value, callback);
@@ -526,12 +526,12 @@ Pathfinder.prototype.updateCommodity = function(startLat, startLng, endLat, endL
  * Updates a transport. Use null for any parameter that should not be updated.
  * @param {number} lat - The current latitude of the transport
  * @param {number} long - The current longitude of the transport
- * @param {number} capacity - The capacity of the transport
+ * @param {number} metadata - The metadata of the transport
  * @param {string} status - The status of the transport
  * @param {number} id - The id of the transport to be updated
  * @param {Pathfinder~updateTransportCallback} callback - The callback that handles the response
  */
-Pathfinder.prototype.updateTransport = function(lat, long, status, capacity, id, callback) {
+Pathfinder.prototype.updateTransport = function(lat, long, status, metadata, id, callback) {
     var value = {};
 
     if(lat !== null) {
@@ -546,8 +546,8 @@ Pathfinder.prototype.updateTransport = function(lat, long, status, capacity, id,
         value.status = status;
     }
 
-    if(capacity !== null) {
-        value.capacity = capacity;
+    if(metadata !== null) {
+        value.metadata = metadata;
     }
 
     this.createRequestHelper("Transport", value, callback);
