@@ -650,6 +650,17 @@ Pathfinder.prototype.routeCommodity = function(id, callback) {
 };
 
 /**
+ * Force a cluster route recalculation. Note that you really should not need this.
+ */
+Pathfinder.prototype.recalculate = function(clusterId) {
+    var obj = {
+        message: "Recalculate",
+        clusterId: clusterId
+    };
+    this.requestHelper("recalculate", "Cluster", clusterId, obj, function(cluster) {});
+};
+
+/**
  * This callback is called after the routeCommodity function receives a response.
  * @callback Pathfinder~routeCommodityCallback
  * @param {object} route - The route received
