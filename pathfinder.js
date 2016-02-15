@@ -66,6 +66,9 @@ function Pathfinder(appId) {
 //            "Cluster" : {}, Not currently in documentation
             "Commodity" : {},
             "Transport" : {}
+        },
+        "recalculate": {
+            "Cluster": {}
         }
     };
 
