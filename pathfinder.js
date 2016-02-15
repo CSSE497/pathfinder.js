@@ -66,9 +66,6 @@ function Pathfinder(appId) {
 //            "Cluster" : {}, Not currently in documentation
             "Commodity" : {},
             "Transport" : {}
-        },
-        "recalculate": {
-            "Cluster": {}
         }
     };
 
@@ -663,7 +660,7 @@ Pathfinder.prototype.recalculate = function(clusterId) {
         clusterId: clusterId
     };
     console.log(JSON.stringify(obj));
-    this.websocket.send(obj);
+    this.websocket.send(JSON.stringify(obj));
 };
 
 /**
