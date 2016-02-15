@@ -118,8 +118,10 @@ Pathfinder.prototype.onmessage = function(msg) {
         this.handleRouteSubscribed(data);
     } else if (data.message == "Subscribed") {
         this.handleSubscribed(data);
-    } else if (data.message = "ApplicationCluster") {
+    } else if (data.message == "ApplicationCluster") {
         this.handleReadDefaultClusterId(data.value);
+    } else if (data.message == "Recalculated") {
+        // Who cares
     } else {
         console.error("Unknown message: " + JSON.stringify(data));
     }
@@ -660,7 +662,8 @@ Pathfinder.prototype.recalculate = function(clusterId) {
         message: "Recalculate",
         clusterId: clusterId
     };
-    this.requestHelper("recalculate", "Cluster", clusterId, obj, function(cluster) {});
+    console.log(JSON.stringify(obj));
+    this.websocket.send(obj);
 };
 
 /**
