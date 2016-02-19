@@ -115,8 +115,10 @@ Pathfinder.prototype.onmessage = function(msg) {
         this.handleRouteSubscribed(data);
     } else if (data.message == "Subscribed") {
         this.handleSubscribed(data);
-    } else if (data.message = "ApplicationCluster") {
+    } else if (data.message == "ApplicationCluster") {
         this.handleReadDefaultClusterId(data.value);
+    } else if (data.message == "Recalculated") {
+        // Who cares
     } else {
         console.error("Unknown message: " + JSON.stringify(data));
     }
@@ -647,6 +649,18 @@ Pathfinder.prototype.routeCluster = function(id, callback) {
  */
 Pathfinder.prototype.routeCommodity = function(id, callback) {
     this.routeRequestHelper("Commodity", id, callback);
+};
+
+/**
+ * Force a cluster route recalculation. Note that you really should not need this.
+ */
+Pathfinder.prototype.recalculate = function(clusterId) {
+    var obj = {
+        message: "Recalculate",
+        clusterId: clusterId
+    };
+    console.log(JSON.stringify(obj));
+    this.websocket.send(JSON.stringify(obj));
 };
 
 /**
