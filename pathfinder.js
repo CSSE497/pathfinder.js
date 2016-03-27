@@ -53,13 +53,13 @@ function Pathfinder(appId, idToken) {
 
         request = new XMLHttpRequest();
         var url = PathfinderConfig.authentication + '?' +
-            'id_token=' + encodeURIComponent(idToken) + '&'
-            'application_id=' + encodeURIComponent(appId) + '&'
+            'id_token=' + encodeURIComponent(idToken) + '&' +
+            'application_id=' + encodeURIComponent(appId) + '&' +
             'connection_id=' + encodeURIComponent(connectionId);
         console.log('POST TO ' + url);
         request.onreadystatechange = function(){
             if(request.readyState === 4){
-                if(request.status in [200, 201, 204]){ // successful
+                if(request.status === 204){ // successful
                     ws.onmessage = function(message){
                         authenticated = JSON.parse(message.data);
                         if(authenticated.message !== 'Authenticated'){
@@ -69,10 +69,12 @@ function Pathfinder(appId, idToken) {
                         onAuthenticated.call();
                         ws.onmessage =  authenticatedOnMessage;
                     }
-                    ws.send(JSON.parse({
+                    ws.send(JSON.stringify({
                         message:'Authenticate'
                     }));
-                }
+                } else {
+			console.warn('authentication failed ' + request.status);
+		}
             }
         };
         request.open('POST',url);
