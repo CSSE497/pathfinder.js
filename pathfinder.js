@@ -1,3 +1,9 @@
+
+var PathfinderConfig = {
+    websocket: 'wss://api.thepathfinder.xyz/socket',
+    authentication: 'https://auth.thepathfinder.xyz/connection'
+};
+
 /**
  * Represents a pathfinder application. This object can be used
  * to query cluster data or request commodity transit.
@@ -5,19 +11,25 @@
  * @param {string} appId - The application identifier for your Pathfinder application
  * @constructor
  */
-function Pathfinder(appId) {
-    this.url = "wss://api.thepathfinder.xyz/socket?AppId=" + appId;
+function Pathfinder(appId, idToken) {
+    this.url = PathfinderConfig.websocket + "?AppId=" + encodeURIComponent(appId);
+    if(idToken === undefined || idToken === null){
+        // get id token somehow
+        throw new Error('no Id token provided');
+    }
     this.appId = appId;
     this.websocket = new WebSocket(this.url);
-    this.websocket.onmessage = this.onmessage.bind(this);
+    var authenticatedOnMessage = this.onmessage.bind(this);
 
-    // stores requests made before the socket is opened
+    // stores requests made before the socket is ready
     this.messageBacklog = [];
 
     var pathfinder = this;
+    var ws = this.websocket;
 
     // sends messages in messageBacklog once socket opens
-    this.websocket.onopen = function(){
+    var onAuthenticated = function(){
+        console.log('AUTHENTICATED');
         if(pathfinder.messageBacklog === undefined){
             // either onopen was called twice or something messed with messageBacklog
             throw new Error(
@@ -29,6 +41,45 @@ function Pathfinder(appId) {
         }
         delete pathfinder.messageBacklog;
     };
+
+    this.websocket.onmessage = function(message){
+        var connected = JSON.parse(message.data);
+        if(connected.message !== "ConnectionId"){
+            console.warn('WEBSOCKET: expected message ConnectionId, got ' + message.data + 'instead.');
+            return;
+        }
+        var connectionId = connected.id;
+        console.log('Connected: '+ connectionId);
+
+        request = new XMLHttpRequest();
+        var url = PathfinderConfig.authentication + '?' +
+            'id_token=' + encodeURIComponent(idToken) + '&' +
+            'application_id=' + encodeURIComponent(appId) + '&' +
+            'connection_id=' + encodeURIComponent(connectionId);
+        console.log('POST TO ' + url);
+        request.onreadystatechange = function(){
+            if(request.readyState === 4){
+                if(request.status === 204){ // successful
+                    ws.onmessage = function(message){
+                        authenticated = JSON.parse(message.data);
+                        if(authenticated.message !== 'Authenticated'){
+                            console.warn('WEBSOCKET: expected message Authenticated, got ' + message.data + 'instead.');
+                            return;
+                        }
+                        onAuthenticated.call();
+                        ws.onmessage =  authenticatedOnMessage;
+                    }
+                    ws.send(JSON.stringify({
+                        message:'Authenticate'
+                    }));
+                } else {
+			console.warn('authentication failed ' + request.status);
+		}
+            }
+        };
+        request.open('POST',url);
+        request.send();
+    }
 
     this.pendingRequests = {
         "created" : {
@@ -134,7 +185,7 @@ Pathfinder.prototype.constructCluster = function(data) {
         this
     );
 
-    var transports = data.vehicles.map(
+    var transports = data.transports.map(
         this.constructTransport,
         this
     );
@@ -443,7 +494,7 @@ Pathfinder.prototype.createCommodity = function(startLat, startLng, endLat, endL
  * Creates a transport.
  * @param {number} latitude - The current latitude of the transport
  * @param {number} longitude - The current longitude of the transport
- * @param {object} metadata - The metadata about the vehicle. Used by routing algorithm.
+ * @param {object} metadata - The metadata about the transport. Used by routing algorithm.
  * @param {string} status - The status of the transport
  * @param {number} clusterId - The cluster the transport will be created under
  * @param {Pathfinder~createTransportCallback} callback - The callback that handles the response
@@ -457,7 +508,7 @@ Pathfinder.prototype.createTransport = function(latitude, longitude, metadata, s
         "clusterId" : clusterId
     };
 
-    this.createRequestHelper("Vehicle", val, callback);
+    this.createRequestHelper("Transport", val, callback);
 };
 
 /**
