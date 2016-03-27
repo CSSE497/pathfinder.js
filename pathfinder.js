@@ -53,8 +53,8 @@ function Pathfinder(appId, idToken) {
 
         request = new XMLHttpRequest();
         var url = PathfinderConfig.authentication + '?' +
-            'id_token=' + encodeURIComponent(idToken) +
-            'application_id=' + encodeURIComponent(appId) +
+            'id_token=' + encodeURIComponent(idToken) + '&'
+            'application_id=' + encodeURIComponent(appId) + '&'
             'connection_id=' + encodeURIComponent(connectionId);
         console.log('POST TO ' + url);
         request.onreadystatechange = function(){
