@@ -15,6 +15,7 @@ function Pathfinder(appId, idToken) {
     this.url = PathfinderConfig.websocket + "?AppId=" + encodeURIComponent(appId);
     if(idToken === undefined || idToken === null){
         // get id token somehow
+        throw new Error('no Id token provided');
     }
     this.appId = appId;
     this.websocket = new WebSocket(this.url);
@@ -28,6 +29,7 @@ function Pathfinder(appId, idToken) {
 
     // sends messages in messageBacklog once socket opens
     var onAuthenticated = function(){
+        console.log('AUTHENTICATED');
         if(pathfinder.messageBacklog === undefined){
             // either onopen was called twice or something messed with messageBacklog
             throw new Error(
@@ -47,12 +49,14 @@ function Pathfinder(appId, idToken) {
             return;
         }
         var connectionId = connected.id;
-        request = new XmlHttpRequest();
+        console.log('Connected: '+ connectionId);
+
+        request = new XMLHttpRequest();
         var url = PathfinderConfig.authentication + '?' +
             'id_token=' + encodeURIComponent(idToken) +
-            'application_id' + encodeURIComponent(appId) +
-            'connection_id' + encodeURIComponent(connectionId);
-
+            'application_id=' + encodeURIComponent(appId) +
+            'connection_id=' + encodeURIComponent(connectionId);
+        console.log('POST TO ' + url);
         request.onreadystatechange = function(){
             if(request.readyState === 4){
                 if(request.status in [200, 201, 204]){ // successful
@@ -67,11 +71,12 @@ function Pathfinder(appId, idToken) {
                     }
                     ws.send(JSON.parse({
                         message:'Authenticate'
-                    });
+                    }));
                 }
             }
         };
         request.open('POST',url);
+        request.send();
     }
 
     this.pendingRequests = {
