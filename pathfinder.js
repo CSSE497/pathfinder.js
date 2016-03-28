@@ -73,8 +73,8 @@ function Pathfinder(appId, idToken) {
                         message:'Authenticate'
                     }));
                 } else {
-			console.warn('authentication failed ' + request.status);
-		}
+                    console.warn('authentication failed ' + request.status);
+                }
             }
         };
         request.open('POST',url);
@@ -362,7 +362,11 @@ Pathfinder.prototype.requestHelper = function(type, model, id, obj, callback) {
                 this.messageBacklog.push(message);
                 break;
             case 1: // opened, send message
-                this.websocket.send(message);
+                if (this.messageBacklog === undefined) {
+                    this.websocket.send(message);
+                } else {
+                    this.messageBacklog.push(message);
+                }
                 break;
             case 2: // closing
                 throw new Error("Failed to send message: \""+message+"\" because socket is closing");
