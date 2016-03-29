@@ -288,13 +288,13 @@ Pathfinder.prototype.handleRouted = function(data) {
         var callback = request.callback;
         delete this.pendingRequests.routed[data.model][id];
 
-        callback(data.route);
+        callback(data.route, data.unroutedCommodities);
     }
 
     if(subscription !== undefined) {
         var subCallback = subscription.callback;
 
-        subCallback(subscription.obj, data.route);
+        subCallback(subscription.obj, data.route, data.unroutedCommodities);
     }
 };
 
