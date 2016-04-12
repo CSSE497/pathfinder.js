@@ -8,7 +8,8 @@
     "David Robinson <robinsdm@rose-hulman.edu>"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/csse497/pathfinder",
+  "private": false,
+  "homepage": "https://github.com/csse497/pathfinder.js",
   "moduleType": [],
   "ignore": [
     "**/.*",
