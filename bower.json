@@ -1,5 +1,5 @@
 {
-  "name": "pathfinder.js",
+  "name": "pathfinder",
   "version": "1.0.0",
   "description": "The Pathfinder JS SDK allows developers to integrate Pathfinder routing service",
   "main": "gulpfile.js",
