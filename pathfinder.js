@@ -15,13 +15,11 @@ var PathfinderConfig = {
  */
 function Pathfinder(appId, idToken, url, dashboard) {
     this.url = (url || PathfinderConfig.websocket) + "?AppId=" + encodeURIComponent(appId);
-    if(idToken === undefined || idToken === null){
-        // get id token somehow
-        throw new Error('no Id token provided');
-    }
     this.appId = appId;
     this.websocket = new WebSocket(this.url);
     var authenticatedOnMessage = this.onmessage.bind(this);
+
+    this.idToken = idToken
 
     // stores requests made before the socket is ready
     this.messageBacklog = [];
@@ -125,15 +123,13 @@ function Pathfinder(appId, idToken, url, dashboard) {
 
 /*
  * This function prepares the auth server for the authentication request.
- * This should be overridden when custom authentication is used.
  */
 Pathfinder.prototype.authenticate = function(connectionId, next){
     console.log('Connected: '+ connectionId);
-
     request = new XMLHttpRequest();
-    var url = PathfinderConfig.authentication + '?' +
-        'id_token=' + encodeURIComponent(idToken) + '&' +
-        'application_id=' + encodeURIComponent(appId) + '&' +
+    var url = this.url + '?' +
+        (this.idToken ? 'id_token=' + encodeURIComponent(this.idToken) + '&' : '') +
+        'application_id=' + encodeURIComponent(this.appId) + '&' +
         'connection_id=' + encodeURIComponent(connectionId);
     console.log('POST TO ' + url);
     request.onreadystatechange = function(){
