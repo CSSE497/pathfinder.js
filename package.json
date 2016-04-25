@@ -1,6 +1,6 @@
 {
   "name": "pathfinder.js",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "homepage": "https://thepathfinder.xyz",
   "license": "MIT",
   "description": "The Pathfinder JS SDK allows developers to integrate with the Pathfinder routing service",
