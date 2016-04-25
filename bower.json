@@ -1,6 +1,6 @@
 {
-  "name": "pathfinder",
-  "version": "1.0.0",
+  "name": "pathfinder.js",
+  "version": "1.0.2",
   "description": "The Pathfinder JS SDK allows developers to integrate Pathfinder routing service",
   "main": "gulpfile.js",
   "authors": [
