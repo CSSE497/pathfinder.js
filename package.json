@@ -1,9 +1,9 @@
 {
   "name": "pathfinder.js",
-  "version": "0.1.1",
-  "homepage": "https://github.com/CSSE497/pathfinder",
+  "version": "1.0.1",
+  "homepage": "https://thepathfinder.xyz",
   "license": "MIT",
-  "description": "The Pathfinder JS SDK allows developers to integrate Pathfinder routing service",
+  "description": "The Pathfinder JS SDK allows developers to integrate with the Pathfinder routing service",
   "contributors": [
     {
       "name": "David Robinson",
