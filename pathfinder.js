@@ -13,8 +13,8 @@ var PathfinderConfig = {
  * @param {url} url - An optional argument, the url used to send a post request, this is used with the default authenticate function
  * @constructor
  */
-function Pathfinder(appId, idToken, url) {
-    this.url = url || PathfinderConfig.websocket + "?AppId=" + encodeURIComponent(appId);
+function Pathfinder(appId, idToken, url, dashboard) {
+    this.url = (url || PathfinderConfig.websocket) + "?AppId=" + encodeURIComponent(appId);
     if(idToken === undefined || idToken === null){
         // get id token somehow
         throw new Error('no Id token provided');
@@ -61,9 +61,13 @@ function Pathfinder(appId, idToken, url) {
                 onAuthenticated.call();
                 ws.onmessage =  authenticatedOnMessage;
             }
-            ws.send(JSON.stringify({
-                message:'Authenticate'
-            }));
+            var message = {
+                message:'Authenticate',
+            };
+            if(dashboard){
+                message.dashboard = true;
+            }
+            ws.send(JSON.stringify(message));
         }
         this.authenticate(connectionId, next);
     }
