@@ -4,26 +4,23 @@ The Pathfinder JS Client Library allows developers to easily integrate Pathfinde
   
 Pathfinder provides routing as a service, removing the need for developers to implement their own routing logistics. This SDK allows for iOS applications to act as commodities that need transportation or vehicles that provide transportation. Additionally, there is support for viewing routes for sets of commodities and vehicles.  
   
-## [Publicly Hosted Documentation](http://csse497.github.io/pathfinder.js/)
+Check out the [Pathfinder documentation](https://pathfinder.readme.io) or the [jsdocs](https://csse497.github.io/pathfinder.js/) for more information.
   
-## Building the Library and Documentation
-1.  Install Node dependencies with  
+## Installation
+
+To install via NPM:
+
 ```
-$ npm install
+npm install pathfinder.js --save
 ```
-2.  Run gulp  
+
+To install via Bower:
+
 ```
-$ gulp
-```  
-  
-Gulp will watch source files and re-minify if one is modified  
-  
+bower install pathfinder.js --save
+```
+
 ## Using Pathfinder.js
-  
-Before you can use pathfinder, you will need to include it in your website:  
-```HTML
-<script type="text/javascript" src="js/vendor/pathfinder.min.js"></script>
-```
   
 To start using pathfinder, create a pathfinder object using your app id and user credentials. Both the app id and user credentials can be found on the web portal.  
 ```JavaScript
